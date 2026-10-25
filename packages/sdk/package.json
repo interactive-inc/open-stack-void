@@ -1,0 +1,21 @@
+{
+  "name": "@open-stack/sdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/void-chat-client.ts",
+    "./contracts": "./src/contracts.ts",
+    "./node-fetch": "./src/node-fetch.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}

@@ -1,10 +1,11 @@
-import { defineConfig } from "vite";
-import { voidPlugin } from "void";
-import { voidReact } from "@void/react/plugin";
+import { defineConfig } from "vite-plus"
 
 export default defineConfig({
-  plugins: [
-    voidPlugin(),
-    voidReact({ react: { compiler: true } }),
-  ],
-});
+  fmt: { semi: false },
+  run: {
+    tasks: {
+      "app:dev": { command: "node scripts/dev.mjs app", cache: false },
+      "site:dev": { command: "node scripts/dev.mjs site", cache: false },
+    },
+  },
+})

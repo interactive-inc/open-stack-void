@@ -1,0 +1,10 @@
+**/.agents/**
+**/.claude/**
+**/src/components/ui/**
+**/src/hooks/**
+**/src/lib/highlighter.tsx
+**/worker-configuration.d.ts
+**/emdash-env.d.ts
+**/db/migrations/meta/**
+**/void.lock.json
+skills-lock.json

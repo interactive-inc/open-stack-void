@@ -1,0 +1,23 @@
+{
+  "name": "@open-stack/cli",
+  "private": true,
+  "bin": {
+    "void-chat": "./dist/cli.mjs"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "vp test run",
+    "build": "vp pack",
+    "check": "tsc --noEmit",
+    "start": "node dist/cli.mjs"
+  },
+  "dependencies": {
+    "@open-stack/sdk": "*",
+    "commander": "14.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "7.0.2",
+    "vite-plus": "1.4.0"
+  }
+}

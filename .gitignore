@@ -8,3 +8,9 @@ dist
 !.env.example
 *.tsbuildinfo
 .DS_Store
+.local
+.dev.vars
+.dev.vars.*
+.astro
+test-results
+playwright-report
