@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "source": {
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "open-stack-void"
+      }
+    ]
+  },
+  "resolved": {
+    "durable_objects": {
+      "bindings": [
+        {
+          "name": "AUTH_GATE",
+          "class_name": "AuthGateDurableObject"
+        },
+        {
+          "name": "CHAT_ROOM",
+          "class_name": "ChatRoomDurableObject"
+        }
+      ]
+    },
+    "migrations": [
+      {
+        "tag": "void-durable-auth-gate-v1",
+        "new_sqlite_classes": [
+          "AuthGateDurableObject"
+        ]
+      },
+      {
+        "tag": "void-durable-chat-room-v1",
+        "new_sqlite_classes": [
+          "ChatRoomDurableObject"
+        ]
+      }
+    ],
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "open-stack-void"
+      }
+    ]
+  },
+  "text": "{\n  \"durable_objects\": {\n    \"bindings\": [\n      {\n        \"name\": \"AUTH_GATE\",\n        \"class_name\": \"AuthGateDurableObject\"\n      },\n      {\n        \"name\": \"CHAT_ROOM\",\n        \"class_name\": \"ChatRoomDurableObject\"\n      }\n    ]\n  },\n  \"migrations\": [\n    {\n      \"tag\": \"void-durable-auth-gate-v1\",\n      \"new_sqlite_classes\": [\n        \"AuthGateDurableObject\"\n      ]\n    },\n    {\n      \"tag\": \"void-durable-chat-room-v1\",\n      \"new_sqlite_classes\": [\n        \"ChatRoomDurableObject\"\n      ]\n    }\n  ],\n  \"d1_databases\": [\n    {\n      \"binding\": \"DB\",\n      \"database_name\": \"open-stack-void\"\n    }\n  ]\n}\n"
+}

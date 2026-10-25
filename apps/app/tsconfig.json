@@ -1,0 +1,35 @@
+{
+  "extends": "./.void/tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["void/env"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@app/*": ["./*"],
+      "@schema": ["./db/schema.ts"],
+      "void/db": ["./.void/db.d.ts"],
+      "void/routes": ["./.void/routes.d.ts"]
+    },
+    "ignoreDeprecations": "6.0"
+  },
+  "exclude": ["src/components/ui", "src/hooks", "src/lib/highlighter.tsx"],
+  "include": [
+    "src",
+    "pages",
+    "routes",
+    "middleware",
+    "crons",
+    "queues",
+    "db",
+    "durable-objects",
+    "env.ts",
+    "vite.config.ts",
+    "void.config.ts"
+  ]
+}
