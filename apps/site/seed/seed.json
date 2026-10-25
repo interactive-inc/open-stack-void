@@ -1,0 +1,722 @@
+{
+  "$schema": "https://emdashcms.com/seed.schema.json",
+  "version": "1",
+  "meta": {
+    "name": "Open Stack Void",
+    "description": "フルスタック開発のためのOSSボイラープレート。Void Chat は同梱サンプル。",
+    "author": "interactive-inc"
+  },
+  "settings": {
+    "title": "Open Stack Void",
+    "tagline": "つくるための、土台。"
+  },
+  "collections": [
+    {
+      "slug": "posts",
+      "label": "Posts",
+      "labelSingular": "Post",
+      "urlPattern": "/posts/{slug}",
+      "supports": ["drafts", "revisions", "preview", "scheduling", "search", "seo"],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "searchable": true
+        },
+        {
+          "slug": "featured_image",
+          "label": "Featured Image",
+          "type": "image"
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText",
+          "searchable": true
+        },
+        {
+          "slug": "excerpt",
+          "label": "Excerpt",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "pages",
+      "label": "Pages",
+      "labelSingular": "Page",
+      "urlPattern": "/{slug}",
+      "supports": ["drafts", "revisions", "preview", "search", "seo"],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "searchable": true
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText",
+          "searchable": true
+        }
+      ]
+    }
+  ],
+  "taxonomies": [
+    {
+      "name": "category",
+      "label": "Categories",
+      "labelSingular": "Category",
+      "hierarchical": true,
+      "collections": ["posts"],
+      "terms": [
+        {
+          "slug": "general",
+          "label": "General"
+        },
+        {
+          "slug": "updates",
+          "label": "Updates"
+        }
+      ]
+    },
+    {
+      "name": "tag",
+      "label": "Tags",
+      "labelSingular": "Tag",
+      "hierarchical": false,
+      "collections": ["posts"],
+      "terms": [
+        {
+          "slug": "starter",
+          "label": "Starter"
+        },
+        {
+          "slug": "example",
+          "label": "Example"
+        }
+      ]
+    }
+  ],
+  "menus": [
+    {
+      "name": "primary",
+      "label": "Primary Navigation",
+      "items": [
+        {
+          "type": "custom",
+          "label": "Home",
+          "url": "/"
+        },
+        {
+          "type": "custom",
+          "label": "更新",
+          "url": "/posts"
+        },
+        {
+          "type": "custom",
+          "label": "概要",
+          "url": "/about"
+        }
+      ]
+    }
+  ],
+  "widgetAreas": [
+    {
+      "name": "sidebar",
+      "label": "Sidebar",
+      "description": "Sidebar widget area",
+      "widgets": [
+        {
+          "type": "component",
+          "componentId": "core:search",
+          "title": "Search"
+        },
+        {
+          "type": "component",
+          "componentId": "core:categories",
+          "title": "Categories"
+        },
+        {
+          "type": "component",
+          "componentId": "core:recent-posts",
+          "title": "Recent Posts",
+          "props": {
+            "count": 5
+          }
+        }
+      ]
+    }
+  ],
+  "content": {
+    "pages": [
+      {
+        "id": "home",
+        "slug": "home",
+        "status": "published",
+        "data": {
+          "title": "つくるための、土台。",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "base-1",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-1",
+                  "text": "Open Stack Void は、フルスタック開発のためのオープンソースのボイラープレートです。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-2",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-2",
+                  "text": "Web・CLI・MCP、パスキー認証、メンバー管理、CMS を組み合わせた構成を、同梱サンプルの Void Chat で確かめられます。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-3",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-3",
+                  "href": "/about"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-3",
+                  "text": "構成とサンプルについて",
+                  "marks": ["url-3"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-4",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-4",
+                  "href": "/posts"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-4",
+                  "text": "導入・開発の記事",
+                  "marks": ["url-4"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-5",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-5",
+                  "href": "https://github.com/interactive-inc/open-stack-void"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-5",
+                  "text": "GitHub でソースを見る",
+                  "marks": ["url-5"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "about",
+        "slug": "about",
+        "status": "published",
+        "data": {
+          "title": "Open Stack Void について",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "base-6",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-6",
+                  "text": "Open Stack Void は、新しいアプリの開発を始めるためのボイラープレートです。リポジトリは interactive-inc/open-stack-void。Void Chat は基盤の使い方を示す同梱サンプルで、独立したチャット製品としての提供ではありません。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-7",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-7",
+                  "text": "npm ワークスペースと Vite+ で、Void / React のアプリ、Astro / EmDash の公開サイト、CLI、MCP、共有 API クライアントを管理します。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-8",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-8",
+                  "text": "パスキー認証、メール招待、メンバー権限、Durable Objects によるメッセージ保存と WebSocket 更新をサンプルに実装しています。Web・CLI・MCP は同じサーバーの認可とアプリケーションルールを使います。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-9",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-9",
+                  "text": "この紹介ページと記事は EmDash のコンテンツです。自分のアプリへ拡張するときは、サンプルのユースケースや境界付けされたコンテキストを手がかりに実装を追加します。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-10",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-10",
+                  "href": "/posts/welcome"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-10",
+                  "text": "導入とサンプルの使い方",
+                  "marks": ["url-10"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-11",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-11",
+                  "href": "/posts/cli-and-mcp"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-11",
+                  "text": "CLI と MCP の基盤",
+                  "marks": ["url-11"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-12",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-12",
+                  "href": "/posts/architecture"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-12",
+                  "text": "構成と拡張方法",
+                  "marks": ["url-12"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-13",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-13",
+                  "href": "https://github.com/interactive-inc/open-stack-void"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-13",
+                  "text": "GitHub",
+                  "marks": ["url-13"]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "posts": [
+      {
+        "id": "post-1",
+        "slug": "welcome",
+        "status": "published",
+        "data": {
+          "title": "導入して Void Chat サンプルを試す",
+          "excerpt": "ローカル起動と、同梱サンプルのパスキー・招待・チャット。",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "base-14",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-14",
+                  "text": "Open Stack Void のリポジトリで vp install --frozen-lockfile、vp run prepare:local、vp run setup、vp run dev を実行します。vp run seed:site でこの紹介ページと記事を EmDash に取り込めます。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-15",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-15",
+                  "text": "アプリを開き、apps/app/.env の初期化キーをブラウザへ貼り付け、最初の所有者のパスキーを登録します。キーは URL に入れません。以降はメンバー管理からメール招待を送ります。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-16",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-16",
+                  "text": "Void Chat は基盤の動作確認用サンプルです。ローカルの招待メールは開発用受信箱に保存され、会話は Durable Objects に保存されます。WebSocket が更新を通知します。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-17",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-17",
+                  "text": "本番ドメイン、実メール配信、公開デプロイは別途設定が必要です。ローカル設定のまま公開する構成ではありません。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-18",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-18",
+                  "href": "/about"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-18",
+                  "text": "ボイラープレートの概要",
+                  "marks": ["url-18"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-19",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-19",
+                  "href": "/posts/cli-and-mcp"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-19",
+                  "text": "CLI と MCP の基盤",
+                  "marks": ["url-19"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-20",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-20",
+                  "href": "https://github.com/interactive-inc/open-stack-void"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-20",
+                  "text": "GitHub の README",
+                  "marks": ["url-20"]
+                }
+              ]
+            }
+          ]
+        },
+        "taxonomies": {
+          "category": ["general"],
+          "tag": ["starter", "example"]
+        }
+      },
+      {
+        "id": "clients",
+        "slug": "cli-and-mcp",
+        "status": "published",
+        "data": {
+          "title": "CLI と MCP で共通のルールを使う",
+          "excerpt": "Web と同じサーバーの認可を共有するクライアント構成。",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "base-21",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-21",
+                  "text": "CLI と MCP は共有の API クライアントを使い、データベースへ直接アクセスしません。新しい操作を追加するときも、サーバーのユースケースと認可を共有します。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-22",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-22",
+                  "text": "サンプル CLI の login はブラウザを開きます。アカウント設定から発行したトークンをコピーし、--clipboard を付けた操作でだけ読み取ります。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-23",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-23",
+                  "text": "MCP は begin_login で公開承認 URL と確認コードを返します。ブラウザでパスキー確認して承認し、complete_login 後にサンプルのメッセージやメンバー操作を試せます。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-24",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-24",
+                  "text": "メンバー停止と権限はサーバーで再確認します。クライアントごとに業務ルールを複製しないことがこの構成の意図です。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-25",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-25",
+                  "href": "/posts/architecture"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-25",
+                  "text": "構成と拡張方法",
+                  "marks": ["url-25"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-26",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-26",
+                  "href": "https://github.com/interactive-inc/open-stack-void"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-26",
+                  "text": "GitHub の README",
+                  "marks": ["url-26"]
+                }
+              ]
+            }
+          ]
+        },
+        "taxonomies": {
+          "category": ["general"],
+          "tag": ["example"]
+        }
+      },
+      {
+        "id": "architecture",
+        "slug": "architecture",
+        "status": "published",
+        "data": {
+          "title": "構成と拡張方法",
+          "excerpt": "境界付けされたコンテキストと EmDash によるコンテンツ管理。",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "base-27",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-27",
+                  "text": "apps/app は Void / React、apps/site は Astro / EmDash、apps/cli と apps/mcp は共通 SDK を使います。npm と Vite+ で開発・検証を実行します。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-28",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-28",
+                  "text": "アプリの contexts には identity・membership・chat の境界を置きます。ドメインはフレームワークから独立させ、書き込みは目的ごとのユースケースに分けます。新しい機能は該当する境界へ追加し、アプリの入口で依存関係を組み立てます。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-29",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-29",
+                  "text": "紹介ページは EmDash の pages、記事は posts で管理します。下書きと公開を分け、公開した内容を一覧と詳細へ表示します。CMS とアプリのアカウントは別管理です。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "base-30",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-30",
+                  "text": "vp run seed:site は同じ slug の既存コンテンツを上書きしません。編集内容を残したまま再実行できます。認証情報や管理者アカウントは seed しません。"
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-31",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-31",
+                  "href": "/about"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-31",
+                  "text": "ボイラープレートの概要",
+                  "marks": ["url-31"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "link-32",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "url-32",
+                  "href": "https://github.com/interactive-inc/open-stack-void"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span-32",
+                  "text": "GitHub でソースを見る",
+                  "marks": ["url-32"]
+                }
+              ]
+            }
+          ]
+        },
+        "taxonomies": {
+          "category": ["updates"],
+          "tag": ["starter"]
+        }
+      }
+    ]
+  }
+}

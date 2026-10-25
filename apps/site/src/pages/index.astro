@@ -1,0 +1,26 @@
+---
+import { getEmDashCollection, getEmDashEntry, getSiteSettings } from 'emdash'
+import { PortableText } from 'emdash/ui'
+import Base from '@/layouts/Base.astro'
+import { buttonVariants } from '@/components/ui/button'
+
+const settings = await getSiteSettings()
+const home = await getEmDashEntry('pages', 'home')
+const posts = await getEmDashCollection('posts', { orderBy: { published_at: 'desc' }, limit: 5 })
+const appUrl = import.meta.env.PUBLIC_APP_URL || (import.meta.env.DEV ? 'http://app.void.stack.localhost' : 'https://app.stack.inta.site')
+
+if (Astro.cache?.enabled) {
+  Astro.cache.set(home.cacheHint)
+  Astro.cache.set(posts.cacheHint)
+}
+---
+<Base title={settings?.title || 'Open Stack Void'}>
+  <section class="grid gap-5" aria-label="Open Stack Void">
+    <div>
+      <h1 {...home.entry?.edit.title}>{home.entry?.data.title || settings?.tagline || 'つくるための、土台。'}</h1>
+      {home.entry?.data.content && <div {...home.entry.edit.content}><PortableText value={home.entry.data.content} /></div>}
+    </div>
+    <div><a href={appUrl} class={buttonVariants()}>サンプルを開く ↗</a></div>
+  </section>
+  {posts.entries.length > 0 && <section class="mt-20 border-t border-border pt-6" aria-label="更新情報"><ul>{posts.entries.map(post => <li class="flex flex-wrap items-baseline justify-between gap-3"><a href={`/posts/${post.id}`} class="text-sm hover:underline" {...post.edit.title}>{post.data.title}</a>{post.data.publishedAt && <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString('ja-JP')}</time>}</li>)}</ul></section>}
+</Base>

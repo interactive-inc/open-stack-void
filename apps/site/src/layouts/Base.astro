@@ -1,0 +1,63 @@
+---
+import { getMenuWithCacheHint, getSiteSettingsWithCacheHint } from 'emdash'
+import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from 'emdash/ui'
+import { createPublicPageContext } from 'emdash/page'
+import { buttonVariants } from '@/components/ui/button'
+import '@/styles/globals.css'
+
+type Props = {
+  title: string
+  pageTitle?: string | null
+  description?: string | null
+  image?: string | null
+  canonical?: string | null
+  content?: { collection: string; id: string; slug?: string | null }
+}
+
+const props = Astro.props
+const settings = await getSiteSettingsWithCacheHint()
+const menu = await getMenuWithCacheHint('primary')
+const siteTitle = settings.data?.title || 'Open Stack Void'
+const description = props.description || settings.data?.tagline || ''
+const appUrl = import.meta.env.PUBLIC_APP_URL || (import.meta.env.DEV ? 'http://app.void.stack.localhost' : 'https://app.stack.inta.site')
+const pageContext = createPublicPageContext({ Astro, kind: props.content ? 'content' : 'custom', pageType: 'website', title: props.title, pageTitle: props.pageTitle || props.title, description, canonical: props.canonical, image: props.image, content: props.content, siteName: siteTitle })
+
+if (Astro.cache?.enabled) {
+  Astro.cache.set(settings.cacheHint)
+  Astro.cache.set(menu.cacheHint)
+}
+---
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{props.pageTitle ? props.title : props.title === siteTitle ? siteTitle : `${props.title} · ${siteTitle}`} </title>
+    <EmDashHead page={pageContext} />
+  </head>
+  <body class="min-h-dvh bg-background text-foreground antialiased">
+    <EmDashBodyStart page={pageContext} />
+    <header class="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-6">
+      <a href="/" class="font-semibold tracking-tight">{siteTitle}<span class="text-muted-foreground">.</span></a>
+      <nav class="flex items-center gap-1" aria-label="ナビゲーション">
+        {menu.data?.items.filter(item => item.url !== '/').map(item => <a href={item.url} class={buttonVariants({ variant: 'ghost', size: 'sm' })}>{item.label}</a>)}
+        <a href={appUrl} class={buttonVariants({ size: 'sm' })}>サンプルを開く ↗</a>
+      </nav>
+    </header>
+    <main class="content mx-auto max-w-5xl px-6 py-12 sm:py-20"><slot /></main>
+    <footer class="mx-auto flex max-w-5xl justify-between gap-4 border-t border-border px-6 py-5 text-xs text-muted-foreground">
+      <a href="/about" class="hover:underline">Open Stack Void について</a>
+      <a href="https://github.com/interactive-inc/open-stack-void" class="hover:underline">GitHub ↗</a>
+    </footer>
+    <EmDashBodyEnd page={pageContext} />
+  </body>
+</html>
+<style is:global>
+  .content h1 { font-size: clamp(2rem, 5vw, 3.75rem); line-height: 1.15; font-weight: 600; letter-spacing: -.04em; margin-block-end: 1.5rem; }
+  .content h2 { font-size: 1.25rem; line-height: 1.4; font-weight: 500; margin-block: 1.5rem .5rem; }
+  .content p { max-width: 42rem; line-height: 1.9; margin-block: .75rem; }
+  .content ul { display: grid; gap: 1.5rem; }
+  .content a:not([data-slot]) { text-underline-offset: 4px; }
+  .content time { font-size: .75rem; color: var(--muted-foreground); }
+  .content img { max-width: 100%; height: auto; border-radius: var(--radius); }
+</style>

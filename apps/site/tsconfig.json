@@ -1,0 +1,13 @@
+{
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "types": ["node"],
+    "paths": {
+      "@seed": ["./seed/seed.json"],
+      "@/*": ["./src/*"]
+    },
+    "jsx": "react-jsx"
+  },
+  "include": ["src", ".astro/types.d.ts", "emdash-env.d.ts", "worker-configuration.d.ts"],
+  "exclude": ["src/components/ui", "src/hooks", "src/lib/highlighter.tsx"]
+}
