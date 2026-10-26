@@ -1,11 +1,13 @@
 import { readFileSync } from "node:fs"
 import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
+import { assertProxyPort } from "./assert-proxy-port.mjs"
 
 const root = fileURLToPath(new URL("../", import.meta.url))
 const cli = fileURLToPath(new URL("../node_modules/portless/dist/cli.js", import.meta.url))
 const config = JSON.parse(readFileSync(new URL("../portless.json", import.meta.url), "utf8"))
 const targets = process.argv[2] ? [process.argv[2]] : ["app", "site"]
+await assertProxyPort(80)
 for (const target of targets)
   if (!["app", "site"].includes(target)) throw new Error("Unknown development app")
 for (const app of targets) {

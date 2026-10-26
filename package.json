@@ -25,7 +25,7 @@
     "check:architecture": "node scripts/check-architecture.mjs",
     "check:docs": "node scripts/check-docs.mjs",
     "check:secrets": "node scripts/check-secrets.mjs",
-    "test:harness": "node --test scripts/architecture-policy.test.mjs scripts/docs-policy.test.mjs scripts/release-candidate.test.mjs scripts/line-endings.test.mjs",
+    "test:harness": "node --test scripts/architecture-policy.test.mjs scripts/docs-policy.test.mjs scripts/release-candidate.test.mjs scripts/line-endings.test.mjs scripts/assert-proxy-port.test.mjs",
     "verify": "node scripts/verify.mjs",
     "verify:full": "node scripts/verify.mjs --full",
     "release:plan": "node scripts/release-plan.mjs",

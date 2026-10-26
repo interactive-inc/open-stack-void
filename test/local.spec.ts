@@ -8,6 +8,22 @@ import { execFileSync } from "node:child_process"
 import type { ExecFileSyncOptionsWithStringEncoding } from "node:child_process"
 import { resolve } from "node:path"
 
+test("initialization state failures are explicit and recover without a reload", async ({
+  page,
+}) => {
+  await page.route("**/api/auth/status", (route) =>
+    route.fulfill({ status: 503, json: { error: "Synthetic initialization failure" } }),
+  )
+  await page.goto("/")
+  await expect(page.getByRole("alert")).toContainText("ログイン状態を確認できません")
+  await expect(page.getByRole("button", { name: "パスキーでログイン", exact: true })).toBeDisabled()
+  await page.unroute("**/api/auth/status")
+  await page.getByRole("button", { name: "再試行", exact: true }).click()
+  await expect(page.getByRole("alert")).toHaveCount(0)
+  await expect(page.getByLabel("初期化キー", { exact: true })).toBeVisible()
+  await expect(page.getByRole("button", { name: "パスキーを登録", exact: true })).toBeEnabled()
+})
+
 test("passkeys, membership, durable chat, CLI and MCP share authorization", async ({
   page,
   context,

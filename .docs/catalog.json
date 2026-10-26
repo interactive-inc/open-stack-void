@@ -47,7 +47,8 @@
         "scripts/architecture-policy.test.mjs",
         "scripts/docs-policy.test.mjs",
         "scripts/release-candidate.test.mjs",
-        "test/portless.spec.ts"
+        "test/portless.spec.ts",
+        "scripts/assert-proxy-port.test.mjs"
       ],
       "source": "User request: reusable nondeveloper workflow, active dialogue, fixed conventions and living rationale; implementation observations are identified in prose."
     },
@@ -287,6 +288,18 @@
         "apps/app/src/contexts/membership/application/rename-profile.test.ts",
         "test/local.spec.ts"
       ]
+    },
+    {
+      "id": "initialization-recovery",
+      "path": "apps/app/.docs/initialization-recovery.md",
+      "status": "current",
+      "kind": "decision",
+      "evidence": "observed",
+      "source": "Local failure injection reproduces a missing status error/retry action; separate from CI run 40386511173 routing evidence.",
+      "related": ["chat-security", "harness-intent"],
+      "supersedes": [],
+      "implementation": ["apps/app/src/screens/login-screen.tsx"],
+      "verification": ["test/local.spec.ts"]
     }
   ],
   "exceptions": []

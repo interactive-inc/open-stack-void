@@ -15,8 +15,11 @@ export function LoginScreen() {
   const registration = useState(false)
   const status = useQuery({
     queryKey: ["auth-status"],
-    queryFn: async () =>
-      z.object({ canBootstrap: z.boolean() }).parse(await (await fetch("/api/auth/status")).json()),
+    queryFn: async () => {
+      const response = await fetch("/api/auth/status")
+      if (!response.ok) throw new Error("ログイン状態を確認できません")
+      return z.object({ canBootstrap: z.boolean() }).parse(await response.json())
+    },
   })
   const detectRegistration = useState(() => () => {
     registration[1](Boolean(new URLSearchParams(location.hash.slice(1)).get("invite")))
@@ -73,12 +76,29 @@ export function LoginScreen() {
             </Field>
           )}
         </FieldGroup>
-        <Button type="submit" disabled={login.isPending || status.isPending}>
+        <Button type="submit" disabled={login.isPending || status.isPending || status.isError}>
           {login.isPending ? "確認中…" : canRegister ? "パスキーを登録" : "パスキーでログイン"}
         </Button>
-        {login.error && (
+        {(login.error || status.error) && (
           <Alert variant="destructive">
-            <AlertDescription>{login.error.message}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between gap-2">
+              <span>
+                {status.error
+                  ? "ログイン状態を確認できません。再試行してください"
+                  : login.error?.message}
+              </span>
+              {status.error && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={status.isFetching}
+                  onClick={() => void status.refetch()}
+                >
+                  再試行
+                </Button>
+              )}
+            </AlertDescription>
           </Alert>
         )}
       </form>
