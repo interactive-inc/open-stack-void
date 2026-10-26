@@ -5,11 +5,12 @@ import { releaseCandidate } from "./release-candidate.mjs"
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim()
 const tags = git("tag", "--merged", "HEAD").split("\n").filter(Boolean)
 let previousTag = null
-try {
-  previousTag = git("describe", "--tags", "--abbrev=0", "HEAD")
-} catch {
-  /* first candidate */
-}
+if (tags.length)
+  try {
+    previousTag = git("describe", "--tags", "--abbrev=0", "HEAD")
+  } catch {
+    /* first candidate */
+  }
 const candidate = releaseCandidate({
   version: process.argv.at(-1),
   sha: git("rev-parse", "HEAD"),
