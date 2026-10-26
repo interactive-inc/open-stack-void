@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24.22.1
-      - name: Inspect loopback proxy ownership without changing services
+      - name: Reserve loopback port on the dedicated hosted runner
         shell: pwsh
         run: |
           $listeners = @(Get-NetTCPConnection -State Listen -LocalPort 80 -ErrorAction SilentlyContinue)
@@ -35,7 +35,21 @@ jobs:
           if ($listeners.Count) {
             $response = Invoke-WebRequest 'http://127.0.0.1/' -Method Head -SkipHttpErrorCheck -TimeoutSec 5
             @{ kind = 'initial-proxy-identity'; status = [int]$response.StatusCode; portless = $response.Headers['X-Portless']; server = $response.Headers['Server'] } | ConvertTo-Json -Compress
-            if (($response.Headers['X-Portless'] -join '') -ne '1') { throw 'Port 80 is owned by a foreign service; diagnostic only, no services were changed.' }
+            if (($response.Headers['X-Portless'] -join '') -ne '1') {
+              $iis = Get-Service W3SVC -ErrorAction SilentlyContinue
+              if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or
+                  ($response.Headers['Server'] -join '') -ne 'Microsoft-IIS/10.0' -or
+                  @($owners | Where-Object { $_.pid -ne 4 }).Count -gt 0 -or
+                  -not $iis -or $iis.Status -ne 'Running') {
+                throw 'Unknown port 80 owner; no services were changed.'
+              }
+              Stop-Service -Name W3SVC -ErrorAction Stop
+              $iis.WaitForStatus('Stopped', [TimeSpan]::FromSeconds(10))
+              if (@(Get-NetTCPConnection -State Listen -LocalPort 80 -ErrorAction SilentlyContinue).Count) {
+                throw 'Port 80 is still occupied; no additional services will be stopped.'
+              }
+              Write-Output 'Stopped only the preinstalled IIS Web service on this disposable GitHub-hosted runner.'
+            }
           }
       - name: Bootstrap the pinned operation frontend
         shell: pwsh
