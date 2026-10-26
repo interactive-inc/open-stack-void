@@ -8,7 +8,11 @@ export const memberSchema = z.object({
   status: z.enum(["active", "disabled"]),
   createdAt: z.number(),
 })
-export const channelSchema = z.object({ id: z.string(), name: z.string() })
+export const channelSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  archived: z.boolean().default(false),
+})
 export const messageSchema = z.object({
   id: z.string(),
   channelId: z.string(),

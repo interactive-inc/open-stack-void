@@ -4,6 +4,7 @@ import { LoginScreen } from "@/screens/login-screen"
 import { chatClient } from "@/client/chat-client"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AuthorizationScreen } from "@/screens/authorization-screen"
+import { RequestFailed } from "@open-stack/sdk"
 
 type Props = { authorizationId: string | null }
 
@@ -22,7 +23,11 @@ export function AppScreen(props: Props) {
       </main>
     )
 
-  if (!viewer.data || viewer.error) return <LoginScreen />
+  if (
+    !viewer.data ||
+    (viewer.error instanceof RequestFailed && [401, 403].includes(viewer.error.status))
+  )
+    return <LoginScreen />
 
   if (props.authorizationId) return <AuthorizationScreen requestId={props.authorizationId} />
 

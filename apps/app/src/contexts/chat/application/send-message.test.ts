@@ -15,6 +15,7 @@ describe("sending messages", () => {
   it("rejects inactive members and missing channels before persistence", async () => {
     const writes: unknown[] = []
     const send = new SendMessage({
+      principal: { memberId: member.id, sessionHash: "test", kind: "browser" },
       channels: { findOne: async () => null },
       messages: {
         create: async (message) => {
@@ -36,7 +37,8 @@ describe("sending messages", () => {
   })
   it("normalizes valid messages and rejects empty or oversized bodies", async () => {
     const send = new SendMessage({
-      channels: { findOne: async (id) => ({ id, name: "general" }) },
+      principal: { memberId: member.id, sessionHash: "test", kind: "browser" },
+      channels: { findOne: async (id) => ({ id, name: "general", archived: false }) },
       messages: { create: async (message) => message },
     })
     expect(

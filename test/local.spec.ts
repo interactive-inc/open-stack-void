@@ -286,6 +286,63 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
     await (await page.request.get("/api/me", { headers: authorization })).json(),
   ).toMatchObject({ id: owner.id, name: "MCP Owner", role: "owner", email: owner.email })
   const mcpInvitation = crypto.randomUUID()
+  const transportChannel = crypto.randomUUID()
+  const cli = async (...args: string[]) =>
+    createCli({
+      readClipboard: async () => token,
+      print: (value) => printed.push(value),
+      openBrowser: () => {},
+    }).parseAsync([
+      "node",
+      "void-chat",
+      "--server",
+      "http://localhost:5183",
+      "--clipboard",
+      ...args,
+    ])
+  await cli("channels", "create", `transports-${suffix}`, "--request-id", transportChannel)
+  expect(printed.at(-1)).toMatchObject({ id: transportChannel, archived: false })
+  await cli("channels", "rename", transportChannel, `renamed-${suffix}`)
+  expect(printed.at(-1)).toMatchObject({ id: transportChannel, name: `renamed-${suffix}` })
+  expect(
+    (
+      await mcp.callTool({
+        name: "rename_channel",
+        arguments: { channel: transportChannel, name: `mcp-${suffix}` },
+      })
+    ).isError,
+  ).not.toBe(true)
+  await cli("messages", "send", transportChannel, "transport-history")
+  expect(
+    (
+      await mcp.callTool({
+        name: "set_channel_archived",
+        arguments: { channel: transportChannel, archived: true },
+      })
+    ).isError,
+  ).not.toBe(true)
+  await expect(cli("messages", "send", transportChannel, "blocked")).rejects.toThrow("アーカイブ")
+  await cli("channels", "restore", transportChannel)
+  expect(printed.at(-1)).toMatchObject({ id: transportChannel, archived: false })
+  await cli("channels", "archive", transportChannel)
+  expect(
+    (
+      await mcp.callTool({
+        name: "set_channel_archived",
+        arguments: { channel: transportChannel, archived: false },
+      })
+    ).isError,
+  ).not.toBe(true)
+  await cli("messages", "list", transportChannel, "--after", "0", "--until", "1")
+  expect(printed.at(-1)).toMatchObject([{ text: "transport-history", sequence: 1 }])
+  expect(
+    (
+      await mcp.callTool({
+        name: "list_messages_after",
+        arguments: { channel: transportChannel, after: 0, until: 1 },
+      })
+    ).isError,
+  ).not.toBe(true)
   for (const retry of [1, 2]) {
     void retry
     const invited = await mcp.callTool({

@@ -12,7 +12,8 @@ export default defineConfig({
     { name: "journeys", testMatch: "local.spec.ts" },
     { name: "security", testMatch: "authorization.spec.ts", dependencies: ["journeys"] },
     { name: "invitations", testMatch: "invitations.spec.ts", dependencies: ["security"] },
-    { name: "bootstrap", testMatch: "bootstrap.spec.ts", dependencies: ["invitations"] },
+    { name: "channels", testMatch: "channels.spec.ts", dependencies: ["invitations"] },
+    { name: "bootstrap", testMatch: "bootstrap.spec.ts", dependencies: ["channels"] },
   ],
   use: {
     actionTimeout: 15_000,

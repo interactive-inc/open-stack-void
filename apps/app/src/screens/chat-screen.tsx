@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Conversation } from "@/screens/conversation"
 import { MembersPanel } from "@/screens/members-panel"
 import { AccountPanel } from "@/screens/account-panel"
+import { ChannelSettingsPanel } from "@/screens/channel-settings-panel"
 import { chatClient } from "@/client/chat-client"
 import { queryClient } from "@/client/query-client"
 import type { Member } from "@open-stack/sdk/contracts"
@@ -25,8 +26,9 @@ type Props = { viewer: Member }
 /** チャンネルと会話に画面を集中させる。 */
 export function ChatScreen(props: Props) {
   const selectedChannel = useState("general")
-  const panel = useState<"members" | "account" | "channel" | null>(null)
+  const panel = useState<"members" | "account" | "channel" | "channel-settings" | null>(null)
   const channelName = useState("")
+  const channelRequestId = useState<string | null>(null)
   const channels = useQuery({
     queryKey: ["channels"],
     queryFn: () => chatClient.channels(),
@@ -35,10 +37,15 @@ export function ChatScreen(props: Props) {
   const channel =
     channels.data?.find((channel) => channel.id === selectedChannel[0]) ?? channels.data?.[0]
   const createChannel = useMutation({
-    mutationFn: () => chatClient.createChannel(channelName[0]),
+    mutationFn: () => {
+      const id = channelRequestId[0] ?? crypto.randomUUID()
+      channelRequestId[1](id)
+      return chatClient.createChannel(channelName[0], id)
+    },
     onSuccess: async (channel) => {
       selectedChannel[1](channel.id)
       channelName[1]("")
+      channelRequestId[1](null)
       panel[1](null)
       await queryClient.invalidateQueries({ queryKey: ["channels"] })
     },
@@ -75,6 +82,9 @@ export function ChatScreen(props: Props) {
             >
               <span className="text-muted-foreground">#</span>
               {channel.name}
+              {channel.archived && (
+                <span className="text-xs text-muted-foreground">アーカイブ</span>
+              )}
             </Button>
           ))}
         </nav>
@@ -111,6 +121,7 @@ export function ChatScreen(props: Props) {
               {channels.data?.map((channel) => (
                 <NativeSelectOption key={channel.id} value={channel.id}>
                   # {channel.name}
+                  {channel.archived ? "（アーカイブ）" : ""}
                 </NativeSelectOption>
               ))}
             </NativeSelect>
@@ -138,7 +149,16 @@ export function ChatScreen(props: Props) {
               設定
             </Button>
           </div>
-          <span className="hidden text-xs text-muted-foreground sm:block">{props.viewer.name}</span>
+          {channel && props.viewer.role !== "member" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label="チャンネル設定"
+              onClick={() => panel[1]("channel-settings")}
+            >
+              編集
+            </Button>
+          )}
         </header>
         {channels.error && (
           <Alert variant="destructive">
@@ -160,12 +180,17 @@ export function ChatScreen(props: Props) {
                 ? "メンバー"
                 : panel[0] === "account"
                   ? "アカウント"
-                  : "チャンネルを作成"}
+                  : panel[0] === "channel-settings"
+                    ? "チャンネル設定"
+                    : "チャンネルを作成"}
             </DialogTitle>
             <DialogDescription className="sr-only">チームとアカウントの管理</DialogDescription>
           </DialogHeader>
           {panel[0] === "members" && <MembersPanel viewer={props.viewer} />}
           {panel[0] === "account" && <AccountPanel viewer={props.viewer} />}
+          {panel[0] === "channel-settings" && channel && (
+            <ChannelSettingsPanel key={channel.id} channel={channel} />
+          )}
           {panel[0] === "channel" && (
             <form
               className="grid gap-4"
@@ -180,7 +205,11 @@ export function ChatScreen(props: Props) {
                   <Input
                     id="channel-name"
                     value={channelName[0]}
-                    onChange={(event) => channelName[1](event.target.value)}
+                    onChange={(event) => {
+                      channelName[1](event.target.value)
+                      channelRequestId[1](null)
+                    }}
+                    disabled={createChannel.isPending}
                     placeholder="design"
                     pattern="[a-z0-9][a-z0-9-]{0,39}"
                     maxLength={40}

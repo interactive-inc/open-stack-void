@@ -51,16 +51,49 @@ export function createCli(props: Props) {
   channels.command("list").action(async () => props.print(await (await client()).channels()))
   channels
     .command("create <name>")
-    .action(async (name) => props.print(await (await client()).createChannel(name)))
+    .option("--request-id <uuid>", "Reuse the ID after an uncertain response")
+    .action(async (name: string, options: { requestId?: string }) =>
+      props.print(await (await client()).createChannel(name, options.requestId)),
+    )
+  channels
+    .command("rename <id> <name>")
+    .action(async (id: string, name: string) =>
+      props.print(await (await client()).renameChannel(id, name)),
+    )
+  channels
+    .command("archive <id>")
+    .action(async (id: string) => props.print(await (await client()).setChannelArchived(id, true)))
+  channels
+    .command("restore <id>")
+    .action(async (id: string) => props.print(await (await client()).setChannelArchived(id, false)))
 
   const messages = command.command("messages")
   messages
     .command("list <channel>")
     .option("--before <sequence>")
-    .action(async (channel: string, options: { before?: string }) =>
-      props.print(
-        await (await client()).messages(channel, options.before ? Number(options.before) : null),
-      ),
+    .option("--after <sequence>")
+    .option("--until <sequence>")
+    .action(
+      async (channel: string, options: { before?: string; after?: string; until?: string }) => {
+        if (
+          (options.before !== undefined && options.after !== undefined) ||
+          (options.until !== undefined && options.after === undefined)
+        )
+          command.error("Use before or after; until requires after")
+        props.print(
+          options.after !== undefined
+            ? await (
+                await client()
+              ).messagesAfter(
+                channel,
+                Number(options.after),
+                options.until === undefined ? undefined : Number(options.until),
+              )
+            : await (
+                await client()
+              ).messages(channel, options.before ? Number(options.before) : null),
+        )
+      },
     )
   messages
     .command("send <channel> <text>")

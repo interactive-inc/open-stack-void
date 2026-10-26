@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query"
+import { useQuery, useMutation } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -19,6 +19,8 @@ import { Field, FieldGroup } from "@/components/ui/field"
 import { chatClient } from "@/client/chat-client"
 import { queryClient } from "@/client/query-client"
 import { subscribeChannel } from "@/client/subscribe-channel"
+import { synchronizeMessages, mergeMessages } from "@/client/synchronize-messages"
+import type { Message as ChatMessage } from "@open-stack/sdk/contracts"
 import type { Channel } from "@open-stack/sdk/contracts"
 
 type Props = { channel: Channel }
@@ -28,13 +30,35 @@ export function Conversation(props: Props) {
   const draft = useState("")
   const pendingId = useState<string | null>(null)
   const subscription = useState(() => () => subscribeChannel(props.channel.id))
-  const messages = useInfiniteQuery({
+  const hasOlder = useState(true)
+  const messages = useQuery({
     queryKey: ["messages", props.channel.id],
-    initialPageParam: null,
-    queryFn: (query: { pageParam: number | null }) =>
-      chatClient.messages(props.channel.id, query.pageParam),
-    getNextPageParam: (page) => (page.length === 100 ? page[0]?.sequence : undefined),
-    refetchInterval: 15_000,
+    queryFn: () => chatClient.messages(props.channel.id),
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
+  const older = useMutation({
+    mutationFn: async () => {
+      const owner = queryClient
+        .getQueryCache()
+        .find({ queryKey: ["messages", props.channel.id], exact: true })
+      const page = await chatClient.messages(props.channel.id, messages.data?.[0]?.sequence ?? null)
+      return { owner, page }
+    },
+    onSuccess: ({ owner, page }) => {
+      if (
+        queryClient
+          .getQueryCache()
+          .find({ queryKey: ["messages", props.channel.id], exact: true }) !== owner
+      )
+        return
+      hasOlder[1](page.length === 100)
+      queryClient.setQueryData<ChatMessage[]>(["messages", props.channel.id], (current) =>
+        mergeMessages(current, page),
+      )
+    },
   })
   const send = useMutation({
     mutationFn: (submission: { text: string; id: string }) =>
@@ -42,7 +66,7 @@ export function Conversation(props: Props) {
     onSuccess: async () => {
       draft[1]("")
       pendingId[1](null)
-      await queryClient.invalidateQueries({ queryKey: ["messages", props.channel.id] })
+      await synchronizeMessages(props.channel.id)
     },
   })
 
@@ -63,52 +87,48 @@ export function Conversation(props: Props) {
                 aria-live="polite"
                 aria-relevant="additions"
               >
-                {messages.hasNextPage && (
+                {hasOlder[0] && (messages.data?.length ?? 0) >= 100 && (
                   <MessageScrollerItem messageId="older-messages">
                     <Button
                       variant="ghost"
                       className="mx-auto"
-                      disabled={messages.isFetchingNextPage}
+                      disabled={older.isPending}
                       onClick={() => {
-                        void messages.fetchNextPage()
+                        older.mutate()
                       }}
                     >
                       以前のメッセージ
                     </Button>
                   </MessageScrollerItem>
                 )}
-                {messages.data?.pages
-                  .slice()
-                  .reverse()
-                  .flat()
-                  .map((message) => (
-                    <MessageScrollerItem key={message.id} messageId={message.id}>
-                      <Message>
-                        <MessageAvatar className="self-start">
-                          <Avatar size="sm">
-                            <AvatarFallback>{message.memberName.slice(0, 1)}</AvatarFallback>
-                          </Avatar>
-                        </MessageAvatar>
-                        <MessageContent className="gap-1">
-                          <MessageHeader className="gap-2">
-                            <span>{message.memberName}</span>
-                            <time dateTime={new Date(message.createdAt).toISOString()}>
-                              {new Date(message.createdAt).toLocaleTimeString("ja-JP", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </time>
-                          </MessageHeader>
-                          <Bubble variant="ghost">
-                            <BubbleContent className="whitespace-pre-wrap">
-                              {message.text}
-                            </BubbleContent>
-                          </Bubble>
-                        </MessageContent>
-                      </Message>
-                    </MessageScrollerItem>
-                  ))}
-                {messages.data?.pages[0]?.length === 0 && (
+                {messages.data?.map((message) => (
+                  <MessageScrollerItem key={message.id} messageId={message.id}>
+                    <Message>
+                      <MessageAvatar className="self-start">
+                        <Avatar size="sm">
+                          <AvatarFallback>{message.memberName.slice(0, 1)}</AvatarFallback>
+                        </Avatar>
+                      </MessageAvatar>
+                      <MessageContent className="gap-1">
+                        <MessageHeader className="gap-2">
+                          <span>{message.memberName}</span>
+                          <time dateTime={new Date(message.createdAt).toISOString()}>
+                            {new Date(message.createdAt).toLocaleTimeString("ja-JP", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </time>
+                        </MessageHeader>
+                        <Bubble variant="ghost">
+                          <BubbleContent className="whitespace-pre-wrap">
+                            {message.text}
+                          </BubbleContent>
+                        </Bubble>
+                      </MessageContent>
+                    </Message>
+                  </MessageScrollerItem>
+                ))}
+                {messages.data?.length === 0 && (
                   <MessageScrollerItem messageId="empty">
                     <Empty>
                       <EmptyDescription>最初のメッセージを送信</EmptyDescription>
@@ -125,17 +145,20 @@ export function Conversation(props: Props) {
         className="flex flex-col gap-2 px-4 py-3 sm:px-6"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!draft[0].trim() || send.isPending) return
+          if (!draft[0].trim() || send.isPending || props.channel.archived) return
           const id = pendingId[0] ?? crypto.randomUUID()
           pendingId[1](id)
           send.mutate({ text: draft[0], id })
         }}
       >
-        {(send.error || messages.error) && (
+        {(send.error || messages.error || older.error) && (
           <Alert variant="destructive">
-            <AlertDescription>{send.error?.message ?? messages.error?.message}</AlertDescription>
+            <AlertDescription>
+              {send.error?.message ?? messages.error?.message ?? older.error?.message}
+            </AlertDescription>
           </Alert>
         )}
+        {props.channel.archived && <p className="text-xs text-muted-foreground">アーカイブ済み</p>}
         <FieldGroup>
           <Field orientation="horizontal" className="items-end">
             <Textarea
@@ -145,7 +168,7 @@ export function Conversation(props: Props) {
               rows={1}
               maxLength={4000}
               value={draft[0]}
-              disabled={send.isPending}
+              disabled={send.isPending || props.channel.archived}
               onChange={(event) => {
                 draft[1](event.target.value)
                 pendingId[1](null)
@@ -162,7 +185,7 @@ export function Conversation(props: Props) {
               size="icon"
               aria-label="送信"
               title="送信"
-              disabled={send.isPending || !draft[0].trim()}
+              disabled={send.isPending || props.channel.archived || !draft[0].trim()}
             >
               ↑
             </Button>

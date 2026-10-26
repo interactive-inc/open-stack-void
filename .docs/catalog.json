@@ -333,6 +333,35 @@
         "test/local.spec.ts",
         "apps/app/src/contexts/membership/infrastructure/invitation-migration.test.ts"
       ]
+    },
+    {
+      "id": "public-channel-lifecycle",
+      "path": "apps/app/.docs/public-channel-lifecycle.md",
+      "status": "current",
+      "kind": "decision",
+      "evidence": "inferred",
+      "source": "Bounded public-channel lifecycle and reconnect increment; reversible policy assumptions are explicitly separated from unanswered private/retention policy.",
+      "related": ["chat-security", "invitation-lifecycle", "harness-intent"],
+      "supersedes": [],
+      "implementation": [
+        "apps/app/src/contexts/chat",
+        "apps/app/durable-objects/chat-room.ts",
+        "apps/app/src/client",
+        "apps/app/src/screens",
+        "apps/app/db/migrations",
+        "packages/sdk/src",
+        "apps/cli/src/create-cli.ts",
+        "apps/mcp/src/server.ts",
+        "playwright.config.ts"
+      ],
+      "verification": [
+        "test/channels.spec.ts",
+        "apps/app/src/client/synchronize-messages.test.ts",
+        "apps/app/src/contexts/chat/application/channel-management.test.ts",
+        "apps/app/src/contexts/chat/infrastructure/channel-migration.test.ts",
+        "test/local.spec.ts",
+        "test/authorization.spec.ts"
+      ]
     }
   ],
   "exceptions": []

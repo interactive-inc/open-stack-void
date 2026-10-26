@@ -1,4 +1,6 @@
 import { chatMessageSchema } from "@/contexts/chat/domain/chat-message"
+import type { ChatPrincipal } from "@/contexts/chat/domain/chat-principal"
+import { ChatFailed } from "@/contexts/chat/domain/chat-failed"
 import type { Member } from "@/contexts/membership/domain/member"
 import type { ChannelRepository } from "@/contexts/chat/infrastructure/repositories/channel.repository"
 import type { MessageRepository } from "@/contexts/chat/infrastructure/repositories/message.repository"
@@ -6,6 +8,7 @@ import type { MessageRepository } from "@/contexts/chat/infrastructure/repositor
 type Context = Readonly<{
   channels: Pick<ChannelRepository, "findOne">
   messages: Pick<MessageRepository, "create">
+  principal: ChatPrincipal
 }>
 
 /** チャンネルにメッセージを送る。 */
@@ -13,11 +16,12 @@ export class SendMessage {
   constructor(private readonly context: Context) {}
 
   async execute(member: Member, input: { channelId: string; id: string; text: string }) {
-    if (member.status !== "active") return new Error("アクセスが停止されています")
+    if (member.status !== "active" || member.id !== this.context.principal.memberId)
+      return new ChatFailed("forbidden")
 
     const channel = await this.context.channels.findOne(input.channelId)
 
-    if (!channel) return new Error("チャンネルが見つかりません")
+    if (!channel) return new ChatFailed("missing")
 
     const message = chatMessageSchema.safeParse({
       ...input,
@@ -26,8 +30,8 @@ export class SendMessage {
       createdAt: Date.now(),
     })
 
-    if (!message.success) return new Error("メッセージは1〜4000文字で入力してください")
+    if (!message.success) return new ChatFailed("invalid")
 
-    return this.context.messages.create(message.data)
+    return this.context.messages.create(message.data, this.context.principal)
   }
 }

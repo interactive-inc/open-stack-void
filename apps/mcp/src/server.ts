@@ -73,9 +73,48 @@ server.registerTool(
   "create_channel",
   {
     description: "Create a channel (admin)",
-    inputSchema: z.object({ name: z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/) }),
+    inputSchema: z.object({
+      name: z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/),
+      requestId: z.uuid().optional(),
+    }),
   },
-  (input) => toolResponse(() => client.createChannel(input.name)),
+  (input) => toolResponse(() => client.createChannel(input.name, input.requestId)),
+)
+server.registerTool(
+  "rename_channel",
+  {
+    description: "Rename a public channel (admin); history and identity are preserved",
+    inputSchema: z.object({
+      channel: z.string(),
+      name: z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/),
+    }),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  (input) => toolResponse(() => client.renameChannel(input.channel, input.name)),
+)
+server.registerTool(
+  "set_channel_archived",
+  {
+    description:
+      "Archive or restore a public channel (admin). Archive stops new messages and retains history.",
+    inputSchema: z.object({ channel: z.string(), archived: z.boolean() }),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  (input) => toolResponse(() => client.setChannelArchived(input.channel, input.archived)),
+)
+server.registerTool(
+  "list_messages_after",
+  {
+    description:
+      "Recover messages in ascending sequence, up to 100 per page. Continue after the last sequence; until fixes the snapshot upper bound.",
+    inputSchema: z.object({
+      channel: z.string(),
+      after: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+      until: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional(),
+    }),
+    annotations: readOnly,
+  },
+  (input) => toolResponse(() => client.messagesAfter(input.channel, input.after, input.until)),
 )
 server.registerTool(
   "list_messages",

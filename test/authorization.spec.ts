@@ -203,6 +203,9 @@ test("device authorizations expire in the local database", async ({ request }) =
 })
 
 test("authentication attempts are bounded per caller", async ({ request }) => {
+  // The existing gate uses calendar-minute windows; keep the burst within one window.
+  const remaining = 60_000 - (Date.now() % 60_000)
+  if (remaining < 5000) await new Promise((resolve) => setTimeout(resolve, remaining + 100))
   const headers = { "CF-Connecting-IP": `2001:db8:${crypto.randomUUID().slice(0, 4)}::2` }
   const responses = []
   for (const attempt of Array.from({ length: 31 }, (_, index) => index))

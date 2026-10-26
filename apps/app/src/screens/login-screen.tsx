@@ -30,6 +30,9 @@ export function LoginScreen() {
       passkeyAction(canRegister ? "register" : "login", name[0], initializationKey[0] || null),
     onSuccess: async () => {
       initializationKey[1]("")
+      queryClient.removeQueries({
+        predicate: (query) => !["me", "auth-status"].includes(String(query.queryKey[0])),
+      })
       await queryClient.invalidateQueries({ queryKey: ["me"] })
       await queryClient.invalidateQueries({ queryKey: ["auth-status"] })
     },

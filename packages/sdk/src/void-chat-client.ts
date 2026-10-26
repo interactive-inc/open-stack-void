@@ -16,6 +16,15 @@ type Props = Readonly<{
   request?: (input: string, options: RequestInit) => Promise<Response>
 }>
 
+export class RequestFailed extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message)
+  }
+}
+
 export class VoidChatClient {
   constructor(private readonly props: Props) {
     if (props.baseUrl) {
@@ -57,11 +66,14 @@ export class VoidChatClient {
       `${this.props.baseUrl.replace(/\/$/, "")}/api${path}`,
       options,
     )
-    const payload: unknown = await response.json()
+    const payload: unknown = await response.json().catch(() => null)
 
     if (!response.ok) {
       const failure = z.object({ error: z.string() }).safeParse(payload)
-      throw new Error(failure.success ? failure.data.error : `HTTP ${response.status}`)
+      throw new RequestFailed(
+        response.status,
+        failure.success ? failure.data.error : `HTTP ${response.status}`,
+      )
     }
 
     return schema.parse(payload)
@@ -76,8 +88,22 @@ export class VoidChatClient {
   renameProfile(name: string) {
     return this.request("/me", memberSchema, "PATCH", { name })
   }
-  createChannel(name: string) {
-    return this.request("/channels", channelSchema, "POST", { name })
+  createChannel(name: string, id: string = crypto.randomUUID()) {
+    return this.request("/channels", channelSchema, "POST", { name, id })
+  }
+  renameChannel(id: string, name: string) {
+    return this.request(`/channels/${encodeURIComponent(id)}`, channelSchema, "PATCH", { name })
+  }
+  setChannelArchived(id: string, archived: boolean) {
+    return this.request(`/channels/${encodeURIComponent(id)}/archive`, channelSchema, "PATCH", {
+      archived,
+    })
+  }
+  messagesAfter(channelId: string, after: number, until?: number) {
+    return this.request(
+      `/channels/${encodeURIComponent(channelId)}/messages?after=${after}${until === undefined ? "" : `&until=${until}`}`,
+      messageSchema.array(),
+    )
   }
   messages(channelId: string, before: number | null = null) {
     return this.request(
