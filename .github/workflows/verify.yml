@@ -1,0 +1,46 @@
+name: Verify
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    env:
+      VP_PACKAGE_MANAGER: npm@12.2.1
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.22.1
+      - name: Bootstrap the pinned operation frontend
+        shell: pwsh
+        run: npm install --global npm@12.2.1 vite-plus@1.4.0 --ignore-scripts
+      - name: Install without dependency hooks
+        run: vp install --frozen-lockfile
+      - name: Verify publication age and prepare approved builds
+        run: vp run prepare:local
+      - name: Install checksum-pinned secret scanner
+        run: vp run setup:scanner
+      - name: Secret scan without printing findings
+        run: vp run check:secrets
+      - name: Require rationale updates for owned changes
+        shell: pwsh
+        env:
+          REVIEW_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if ($env:REVIEW_BASE -and $env:REVIEW_BASE -notmatch '^0+$') { $env:DOCS_BASE = $env:REVIEW_BASE }
+          vp run check:docs
+      - name: Prepare browser runtime
+        run: vp exec playwright install chromium
+      - name: Full isolated verification
+        run: vp run verify:full

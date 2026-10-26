@@ -1,0 +1,7 @@
+# Delivery contract
+
+Commit verified responsibilities with Conventional Commits. Before an authorized normal push, scan tracked files, staged changes, commit messages and outgoing history; keep .env, credentials, local databases, logs and browser artifacts ignored. Stop publication if a real secret is found in reachable history; do not rewrite history or rotate credentials implicitly. Verify remote SHA and that exact SHA's CI result after pushing.
+
+`vp run release:plan -- <major.minor.patch>` produces an ignored, local candidate containing the exact clean SHA, previous reachable tag, commit-derived draft changelog, verification evidence and rollback prerequisites. It requires a successful full verification receipt for the same SHA and fresh secret scan. It neither creates tags/releases nor deploys. A published version cannot be inferred from a local candidate. Review the draft for user-visible accuracy and migration impact.
+
+Actual tags, releases, production deployment, credentials, permission changes and database restores require explicit authorization for those actions. A release must be tied to an immutable SHA and passing checks. Rollback requires the previously deployed artifact and a verified database compatibility/restore plan; a Git revert alone cannot undo persisted writes. Never blindly auto-publish or auto-merge policy changes.

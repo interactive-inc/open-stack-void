@@ -1,5 +1,7 @@
 import { defineConfig } from "@playwright/test"
 
+const state = `../../.local/app-suite-${Date.now()}`
+
 export default defineConfig({
   testDir: "./test",
   timeout: 120_000,
@@ -25,22 +27,22 @@ export default defineConfig({
       url: "http://localhost:5183/api/health",
       env: {
         CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false",
-        VOID_CHAT_TEST_STATE: "../../.local/app-e2e",
+        VOID_CHAT_TEST_STATE: `${state}/app`,
         APP_ORIGIN: "http://localhost:5183",
         BOOTSTRAP_TOKEN: "e2e-only-initialization-key",
         ADMIN_EMAIL: "owner@example.com",
       },
-      reuseExistingServer: true,
+      reuseExistingServer: false,
       timeout: 90_000,
     },
     {
       command: "vp -C apps/site exec astro dev --host 127.0.0.1 --port 4322",
       url: "http://localhost:4322",
       env: {
-        VOID_SITE_TEST_STATE: "../../.local/site-e2e",
+        VOID_SITE_TEST_STATE: `${state}/site`,
         PUBLIC_APP_URL: "http://localhost:5183",
       },
-      reuseExistingServer: true,
+      reuseExistingServer: false,
       timeout: 120_000,
     },
   ],

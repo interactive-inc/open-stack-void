@@ -1,5 +1,16 @@
 # Development
 
+Before planning or editing, explicitly open and follow these English contracts (wiki links and `@import` are not automatic imports):
+
+- `.docs/core/workflow.md`
+- `.docs/core/architecture.md`
+- `.docs/core/verification.md`
+- `.docs/core/delivery.md`
+- `.docs/core/conversation.md`
+- `.docs/core/documentation.md`
+
+Start at `.docs/README.md` and `.docs/catalog.json` for product intent and decision history. Run `vp run check:docs` in the same change; never defer relevant decision updates until after delivery.
+
 - Use `inta:dev` and focused `inta:test` verification when available.
 - Work locally. Do not publish, deploy, push, or modify remote data unless explicitly requested.
 - Use npm workspaces as the package-manager backend and Vite+ for every user-facing operation. Never invoke pnpm. Apps belong in `apps/`, shared clients in `packages/`.

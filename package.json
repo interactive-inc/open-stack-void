@@ -21,9 +21,18 @@
     "test:e2e:cms": "playwright test --config playwright.cms.config.ts",
     "check:dependencies": "node scripts/check-lock-age.mjs",
     "test:policy": "node --test scripts/release-policy.test.mjs",
-    "prepare:local": "node scripts/prepare-local.mjs"
+    "prepare:local": "node scripts/prepare-local.mjs",
+    "check:architecture": "node scripts/check-architecture.mjs",
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "test:harness": "node --test scripts/architecture-policy.test.mjs scripts/docs-policy.test.mjs scripts/release-candidate.test.mjs",
+    "verify": "node scripts/verify.mjs",
+    "verify:full": "node scripts/verify.mjs --full",
+    "release:plan": "node scripts/release-plan.mjs",
+    "setup:scanner": "node scripts/setup-scanner.mjs"
   },
   "devDependencies": {
+    "@babel/parser": "7.29.11",
     "@modelcontextprotocol/sdk": "1.32.2",
     "@playwright/test": "1.64.1",
     "@types/node": "24.19.2",
