@@ -14,6 +14,7 @@ function message(sequence: number): Message {
     text: `${sequence}`,
     createdAt: sequence,
     sequence,
+    attachments: [],
   }
 }
 afterEach(() => {

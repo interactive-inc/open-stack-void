@@ -362,6 +362,45 @@
         "test/local.spec.ts",
         "test/authorization.spec.ts"
       ]
+    },
+    {
+      "id": "search-attachments",
+      "path": "apps/app/.docs/search-attachments.md",
+      "status": "current",
+      "kind": "decision",
+      "evidence": "inferred",
+      "source": "User-authorized public-channel search and attachment increment; provisional storage, budgets and preview choices are inferred and reversible, with no new remote resources.",
+      "related": ["public-channel-lifecycle", "chat-security", "harness-intent"],
+      "supersedes": [],
+      "implementation": [
+        "apps/app/src/contexts/chat",
+        "apps/app/durable-objects/chat-room.ts",
+        "apps/app/src/api/api.ts",
+        "apps/app/src/screens",
+        "apps/app/src/client/synchronize-messages.test.ts",
+        "apps/cli/src",
+        "apps/mcp/src/server.ts",
+        "packages/sdk/src",
+        "playwright.config.ts",
+        "apps/app/src/api/limit-body.ts",
+        "apps/app/src/api/body-budget.ts",
+        "apps/app/vite.config.ts",
+        "scripts/dev-body-limit.ts",
+        "package.json"
+      ],
+      "verification": [
+        "test/content.spec.ts",
+        "test/room-fixture.ts",
+        "test/local.spec.ts",
+        "apps/app/src/contexts/chat/domain/attachment.test.ts",
+        "apps/app/src/contexts/chat/domain/search.test.ts",
+        "apps/app/src/contexts/chat/application/upload-attachment.test.ts",
+        "apps/cli/src/read-attachment.test.ts",
+        "apps/cli/src/client-bounds.test.ts",
+        "test/portless.spec.ts",
+        "apps/app/src/api/limit-body.test.ts",
+        "scripts/dev-body-limit.test.mjs"
+      ]
     }
   ],
   "exceptions": []

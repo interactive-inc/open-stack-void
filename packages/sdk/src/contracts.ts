@@ -13,6 +13,43 @@ export const channelSchema = z.object({
   name: z.string(),
   archived: z.boolean().default(false),
 })
+export const attachmentSchema = z.object({
+  id: z.string(),
+  channelId: z.string(),
+  messageId: z.string(),
+  memberId: z.string(),
+  name: z.string(),
+  mediaType: z.string(),
+  size: z.number(),
+  sequence: z.number(),
+  createdAt: z.number(),
+})
+export const attachmentPageSchema = z.object({
+  items: attachmentSchema.array(),
+  nextBefore: z.number().nullable(),
+  usage: z.object({
+    files: z.number(),
+    bytes: z.number(),
+    maxFiles: z.number(),
+    maxBytes: z.number(),
+  }),
+})
+export const searchPageSchema = z.object({
+  results: z
+    .object({
+      id: z.string(),
+      channelId: z.string(),
+      sequence: z.number(),
+      memberName: z.string(),
+      createdAt: z.number(),
+      snippet: z.string(),
+    })
+    .array(),
+  nextBefore: z.number().nullable(),
+  until: z.number(),
+  complete: z.boolean(),
+  windowSize: z.number(),
+})
 export const messageSchema = z.object({
   id: z.string(),
   channelId: z.string(),
@@ -21,6 +58,7 @@ export const messageSchema = z.object({
   text: z.string(),
   createdAt: z.number(),
   sequence: z.number(),
+  attachments: attachmentSchema.array().default([]),
 })
 export const invitationSchema = z.object({
   id: z.string(),
@@ -41,3 +79,4 @@ export const successSchema = z.object({ ok: z.boolean() })
 export type Member = z.infer<typeof memberSchema>
 export type Channel = z.infer<typeof channelSchema>
 export type Message = z.infer<typeof messageSchema>
+export type Attachment = z.infer<typeof attachmentSchema>

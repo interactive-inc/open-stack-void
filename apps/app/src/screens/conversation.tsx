@@ -19,6 +19,8 @@ import { Field, FieldGroup } from "@/components/ui/field"
 import { chatClient } from "@/client/chat-client"
 import { queryClient } from "@/client/query-client"
 import { subscribeChannel } from "@/client/subscribe-channel"
+import { MessageAttachments } from "@/screens/message-attachments"
+import { AttachmentComposer } from "@/screens/attachment-composer"
 import { synchronizeMessages, mergeMessages } from "@/client/synchronize-messages"
 import type { Message as ChatMessage } from "@open-stack/sdk/contracts"
 import type { Channel } from "@open-stack/sdk/contracts"
@@ -119,11 +121,17 @@ export function Conversation(props: Props) {
                             })}
                           </time>
                         </MessageHeader>
-                        <Bubble variant="ghost">
-                          <BubbleContent className="whitespace-pre-wrap">
-                            {message.text}
-                          </BubbleContent>
-                        </Bubble>
+                        {message.attachments.length === 0 && (
+                          <Bubble variant="ghost">
+                            <BubbleContent className="whitespace-pre-wrap">
+                              {message.text}
+                            </BubbleContent>
+                          </Bubble>
+                        )}
+                        <MessageAttachments
+                          channelId={props.channel.id}
+                          attachments={message.attachments}
+                        />
                       </MessageContent>
                     </Message>
                   </MessageScrollerItem>
@@ -192,6 +200,7 @@ export function Conversation(props: Props) {
           </Field>
         </FieldGroup>
       </form>
+      <AttachmentComposer channel={props.channel} />
     </section>
   )
 }

@@ -1,5 +1,6 @@
 import { Hono } from "hono"
-import { bodyLimit } from "hono/body-limit"
+import { bodyBudget } from "@/api/body-budget"
+import { limitBody } from "@/api/limit-body"
 import { env } from "void/env"
 import { z } from "zod"
 import type { AppEnvironment } from "@/api/app-environment"
@@ -7,6 +8,8 @@ import { registrationRoutes } from "@/contexts/identity/interface/registration-r
 import { loginRoutes } from "@/contexts/identity/interface/login-routes"
 import { accountRoutes } from "@/contexts/identity/interface/account-routes"
 import { membershipRoutes } from "@/contexts/membership/interface/membership-routes"
+import { contentRoutes } from "@/contexts/chat/interface/content-routes"
+import { attachmentLimit } from "@/contexts/chat/domain/attachment-limits"
 import { chatRoutes } from "@/contexts/chat/interface/chat-routes"
 import { AuthGate } from "@app/durable-objects/auth-gate"
 import { deviceRoutes } from "@/contexts/identity/interface/device-routes"
@@ -14,7 +17,10 @@ import { reauthenticationRoutes } from "@/contexts/identity/interface/reauthenti
 
 export const api = new Hono<AppEnvironment>().basePath("/api")
 
-api.use("*", bodyLimit({ maxSize: 16_384 }))
+api.use("*", (context, next) =>
+  limitBody(bodyBudget(context.req.method, context.req.path, attachmentLimit))(context, next),
+)
+
 api.use("*", async (context, next) => {
   context.header("Cache-Control", "no-store")
   context.header("X-Content-Type-Options", "nosniff")
@@ -57,6 +63,7 @@ api.route("/auth", reauthenticationRoutes)
 api.route("/device", deviceRoutes)
 api.route("/", accountRoutes)
 api.route("/", membershipRoutes)
+api.route("/", contentRoutes)
 api.route("/", chatRoutes)
 
 api.onError((error, context) => {

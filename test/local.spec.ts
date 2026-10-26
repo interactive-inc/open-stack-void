@@ -343,6 +343,79 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
       })
     ).isError,
   ).not.toBe(true)
+  const contentFile = `.local/transport-${suffix}.txt`
+  const outputFile = `.local/transport-${suffix}-download.txt`
+  writeFileSync(contentFile, "synthetic transport attachment")
+  const contentId = crypto.randomUUID()
+  await cli("attachments", "upload", transportChannel, contentFile, "--request-id", contentId)
+  expect(printed.at(-1)).toMatchObject({
+    id: contentId,
+    channelId: transportChannel,
+    mediaType: "text/plain",
+  })
+  await cli("attachments", "list", transportChannel)
+  expect(printed.at(-1)).toMatchObject({ items: [{ id: contentId }], usage: { files: 1 } })
+  await cli("attachments", "download", transportChannel, contentId, "--output", outputFile)
+  expect(readFileSync(outputFile, "utf8")).toBe("synthetic transport attachment")
+  await cli("messages", "search", transportChannel, `transport-${suffix}`)
+  expect(printed.at(-1)).toMatchObject({ complete: true, results: [{ id: contentId }] })
+  const mcpContentId = crypto.randomUUID()
+  const uploaded = await mcp.callTool({
+    name: "upload_attachment",
+    arguments: {
+      channel: transportChannel,
+      name: "mcp.txt",
+      mediaType: "text/plain",
+      data: Buffer.from("synthetic MCP attachment").toString("base64"),
+      requestId: mcpContentId,
+    },
+  })
+  expect(uploaded.isError).not.toBe(true)
+  for (const data of ["A".repeat(1024 * 1024), "not-base64!", "Zg="])
+    expect(
+      (
+        await mcp.callTool({
+          name: "upload_attachment",
+          arguments: {
+            channel: transportChannel,
+            name: "rejected.txt",
+            mediaType: "text/plain",
+            data,
+            requestId: crypto.randomUUID(),
+          },
+        })
+      ).isError,
+    ).toBe(true)
+  const listed = await mcp.callTool({
+    name: "list_attachments",
+    arguments: { channel: transportChannel },
+  })
+  expect(listed.isError).not.toBe(true)
+  expect(JSON.stringify(listed)).not.toContain('"digest"')
+  const downloaded = await mcp.callTool({
+    name: "download_attachment",
+    arguments: { channel: transportChannel, id: mcpContentId },
+  })
+  expect(downloaded.isError).not.toBe(true)
+  expect(JSON.stringify(downloaded)).toContain(
+    Buffer.from("synthetic MCP attachment").toString("base64"),
+  )
+  expect(
+    (
+      await mcp.callTool({
+        name: "search_messages",
+        arguments: { channel: transportChannel, q: "mcp.txt" },
+      })
+    ).isError,
+  ).not.toBe(true)
+  expect(
+    (
+      await mcp.callTool({
+        name: "read_message",
+        arguments: { channel: transportChannel, id: mcpContentId },
+      })
+    ).isError,
+  ).not.toBe(true)
   for (const retry of [1, 2]) {
     void retry
     const invited = await mcp.callTool({
@@ -441,6 +514,20 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
   await page.getByRole("button", { name: "Close", exact: true }).click()
   await page.setViewportSize({ width: 390, height: 844 })
   await expect(page.getByRole("combobox", { name: "チャンネル" })).toBeVisible()
+  const overflow = await page.evaluate(() => ({
+    width: innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    elements: [...document.querySelectorAll("*")]
+      .map((element) => ({
+        tag: element.tagName,
+        id: element.id,
+        right: element.getBoundingClientRect().right,
+        position: getComputedStyle(element).position,
+      }))
+      .filter((element) => element.right > innerWidth),
+  }))
+  if (overflow.scrollWidth > overflow.width)
+    writeFileSync(".local/content-overflow.json", JSON.stringify(overflow))
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   )

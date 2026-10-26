@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { attachmentSchema } from "@/contexts/chat/domain/attachment"
 
 export const chatMessageSchema = z.object({
   id: z.string().uuid(),
@@ -8,6 +9,7 @@ export const chatMessageSchema = z.object({
   text: z.string().trim().min(1).max(4000),
   createdAt: z.number(),
   sequence: z.number().int().nonnegative().default(0),
+  attachments: attachmentSchema.array().default([]),
 })
 
 export type ChatMessage = z.infer<typeof chatMessageSchema>

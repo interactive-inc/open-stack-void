@@ -1,6 +1,9 @@
 import { nodeFetch } from "@open-stack/sdk/node-fetch"
 import { Command } from "commander"
 import { VoidChatClient } from "@open-stack/sdk"
+import { writeFile } from "node:fs/promises"
+import { readAttachment } from "./read-attachment"
+import { basename, extname } from "node:path"
 
 type Props = {
   readClipboard: () => Promise<string | Error>
@@ -68,6 +71,73 @@ export function createCli(props: Props) {
     .action(async (id: string) => props.print(await (await client()).setChannelArchived(id, false)))
 
   const messages = command.command("messages")
+  messages
+    .command("search <channel> <query>")
+    .option("--before <sequence>")
+    .option("--until <sequence>")
+    .action(async (channel: string, query: string, options: { before?: string; until?: string }) =>
+      props.print(
+        await (
+          await client()
+        ).search(
+          channel,
+          query,
+          options.before === undefined ? undefined : Number(options.before),
+          options.until === undefined ? undefined : Number(options.until),
+        ),
+      ),
+    )
+  const attachments = command.command("attachments")
+  attachments
+    .command("list <channel>")
+    .option("--before <sequence>")
+    .action(async (channel: string, options: { before?: string }) =>
+      props.print(
+        await (
+          await client()
+        ).attachments(channel, options.before === undefined ? undefined : Number(options.before)),
+      ),
+    )
+  attachments
+    .command("upload <channel> <file>")
+    .requiredOption(
+      "--request-id <uuid>",
+      "Reuse this public request ID after an uncertain response",
+    )
+    .option("--type <mime>")
+    .action(
+      async (channel: string, file: string, options: { requestId?: string; type?: string }) => {
+        const authenticated = await client()
+        const bytes = await readAttachment(file)
+        if (bytes instanceof Error) throw bytes
+        const types: Record<string, string> = {
+          ".txt": "text/plain",
+          ".png": "image/png",
+          ".jpg": "image/jpeg",
+          ".jpeg": "image/jpeg",
+          ".webp": "image/webp",
+        }
+        props.print(
+          await authenticated.uploadAttachment(
+            channel,
+            basename(file),
+            new Blob([bytes], {
+              type:
+                options.type ?? types[extname(file).toLowerCase()] ?? "application/octet-stream",
+            }),
+            options.requestId,
+          ),
+        )
+      },
+    )
+  attachments
+    .command("download <channel> <id>")
+    .requiredOption("--output <file>")
+    .action(async (channel: string, id: string, options: { output: string }) => {
+      const blob = await (await client()).downloadAttachment(channel, id)
+      await writeFile(options.output, new Uint8Array(await blob.arrayBuffer()), { flag: "wx" })
+      props.print({ saved: options.output })
+    })
   messages
     .command("list <channel>")
     .option("--before <sequence>")

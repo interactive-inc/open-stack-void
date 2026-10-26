@@ -100,6 +100,20 @@ test("named local origins preserve passkeys, cookies, sockets and client authori
   await client.sendMessage(channels[0]!.id, "portless-live-message")
   await incoming
   await expect(page.getByText("portless-live-message", { exact: true })).toBeVisible()
+  const file = await client.uploadAttachment(
+    channels[0]!.id,
+    "named.txt",
+    new Blob(["named-loopback-file"], { type: "text/plain" }),
+  )
+  expect(await (await client.downloadAttachment(channels[0]!.id, file.id)).text()).toBe(
+    "named-loopback-file",
+  )
+  expect((await client.search(channels[0]!.id, "named.txt")).results).toMatchObject([
+    { id: file.messageId },
+  ])
+  await expect(
+    page.getByRole("button", { name: "named.txt をダウンロード", exact: true }),
+  ).toBeVisible()
   const output: unknown[] = []
   await createCli({
     readClipboard: async () => token,
@@ -145,6 +159,21 @@ test("named local origins preserve passkeys, cookies, sockets and client authori
     await expect(page.getByRole("heading", { name: "完了", exact: true })).toBeVisible()
     expect((await mcp.callTool({ name: "complete_login", arguments: {} })).isError).not.toBe(true)
     expect((await mcp.callTool({ name: "whoami", arguments: {} })).isError).not.toBe(true)
+    expect(
+      (await mcp.callTool({ name: "list_attachments", arguments: { channel: channels[0]!.id } }))
+        .isError,
+    ).not.toBe(true)
+    const attachment = await mcp.callTool({
+      name: "upload_attachment",
+      arguments: {
+        channel: channels[0]!.id,
+        name: "named-mcp.txt",
+        mediaType: "text/plain",
+        data: Buffer.from("named MCP bytes").toString("base64"),
+        requestId: crypto.randomUUID(),
+      },
+    })
+    expect(attachment.isError).not.toBe(true)
   } finally {
     await mcp.close()
   }

@@ -5,6 +5,12 @@ import type { ChatPrincipal } from "@/contexts/chat/domain/chat-principal"
 import { ChatFailed } from "@/contexts/chat/domain/chat-failed"
 import { ChatAccessRepository } from "@/contexts/chat/infrastructure/repositories/chat-access.repository"
 import { ChannelRepository } from "@/contexts/chat/infrastructure/repositories/channel.repository"
+import { RoomAttachments } from "@/contexts/chat/infrastructure/room-attachments"
+import { validateAttachment } from "@/contexts/chat/domain/attachment"
+import type { AttachmentSubmission } from "@/contexts/chat/domain/attachment"
+import { searchSnippet } from "@/contexts/chat/domain/search"
+
+type MessageRow = Omit<ChatMessage, "attachments">
 
 class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
   constructor(state: DurableObjectState, bindings: { DB: D1Database }) {
@@ -14,6 +20,7 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
     state.storage.sql.exec(
       "CREATE TABLE IF NOT EXISTS messages (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, channelId TEXT NOT NULL, memberId TEXT NOT NULL, memberName TEXT NOT NULL, text TEXT NOT NULL, createdAt INTEGER NOT NULL)",
     )
+    RoomAttachments.initialize(state.storage.sql)
   }
 
   async list(
@@ -29,21 +36,23 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
       if (after !== null)
         return {
           messages: this.ctx.storage.sql
-            .exec<ChatMessage>(
+            .exec<MessageRow>(
               "SELECT * FROM messages WHERE sequence > ? AND sequence <= ? ORDER BY sequence LIMIT 100",
               after,
               until ?? Number.MAX_SAFE_INTEGER,
             )
-            .toArray(),
+            .toArray()
+            .map((message) => this.withAttachments(message)),
         }
       return {
         messages: this.ctx.storage.sql
-          .exec<ChatMessage>(
+          .exec<MessageRow>(
             "SELECT * FROM messages WHERE sequence < ? ORDER BY sequence DESC LIMIT 100",
             before ?? Number.MAX_SAFE_INTEGER,
           )
           .toArray()
-          .reverse(),
+          .reverse()
+          .map((message) => this.withAttachments(message)),
       }
     })
   }
@@ -56,18 +65,18 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
       )
       if (!access || message.memberId !== principal.memberId) return { error: "forbidden" as const }
       const existing = this.ctx.storage.sql
-        .exec<ChatMessage>("SELECT * FROM messages WHERE id = ?", message.id)
+        .exec<MessageRow>("SELECT * FROM messages WHERE id = ?", message.id)
         .toArray()[0]
 
       if (existing) {
         if (existing.memberId !== message.memberId || existing.text !== message.text)
           return { error: "conflict" as const }
-        return { message: existing }
+        return { message: this.withAttachments(existing) }
       }
       if (access.archived) return { error: "archived" as const }
 
       const stored = this.ctx.storage.sql
-        .exec<ChatMessage>(
+        .exec<MessageRow>(
           "INSERT INTO messages (id, channelId, memberId, memberName, text, createdAt) VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
           message.id,
           message.channelId,
@@ -79,7 +88,177 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
         .one()
 
       await this.broadcast()
-      return { message: stored }
+      return { message: this.withAttachments(stored) }
+    })
+  }
+
+  private withAttachments(message: MessageRow) {
+    return {
+      ...message,
+      attachments: new RoomAttachments(this.ctx.storage.sql).forMessage(message.id),
+    }
+  }
+
+  async message(channelId: string, principal: ChatPrincipal, id: string) {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      if (!(await new ChatAccessRepository(this.env.DB).findOne(channelId, principal)))
+        return { error: "forbidden" as const }
+      const message = this.ctx.storage.sql
+        .exec<MessageRow>("SELECT * FROM messages WHERE id = ? AND channelId = ?", id, channelId)
+        .toArray()[0]
+      return message ? { message: this.withAttachments(message) } : { error: "missing" as const }
+    })
+  }
+
+  async search(
+    channelId: string,
+    principal: ChatPrincipal,
+    q: string,
+    before: number | null,
+    until: number | null,
+  ) {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      if (!(await new ChatAccessRepository(this.env.DB).findOne(channelId, principal)))
+        return { error: "forbidden" as const }
+      const maximum = this.ctx.storage.sql
+        .exec<{ maximum: number }>("SELECT COALESCE(MAX(sequence),0) AS maximum FROM messages")
+        .one().maximum
+      const upper = Math.min(until ?? maximum, maximum)
+      const cursor = before ?? Number.MAX_SAFE_INTEGER
+      const range = this.ctx.storage.sql
+        .exec<{ first: number | null; count: number }>(
+          "SELECT MIN(sequence) AS first, COUNT(*) AS count FROM (SELECT sequence FROM messages WHERE channelId = ? AND sequence < ? AND sequence <= ? ORDER BY sequence DESC LIMIT 5000)",
+          channelId,
+          cursor,
+          upper,
+        )
+        .one()
+      const matches =
+        range.first === null
+          ? []
+          : this.ctx.storage.sql
+              .exec<MessageRow>(
+                "SELECT * FROM messages WHERE channelId = ? AND sequence >= ? AND sequence < ? AND sequence <= ? AND instr(lower(text),lower(?)) > 0 ORDER BY sequence DESC LIMIT 51",
+                channelId,
+                range.first,
+                cursor,
+                upper,
+                q,
+              )
+              .toArray()
+      const page = matches.slice(0, 50)
+      const older =
+        range.first !== null &&
+        this.ctx.storage.sql
+          .exec(
+            "SELECT sequence FROM messages WHERE channelId = ? AND sequence < ? LIMIT 1",
+            channelId,
+            range.first,
+          )
+          .toArray().length > 0
+      const nextBefore = matches.length > 50 ? page.at(-1)!.sequence : older ? range.first : null
+      return {
+        page: {
+          results: page.map((message) => ({
+            id: message.id,
+            channelId: message.channelId,
+            sequence: message.sequence,
+            memberName: message.memberName,
+            createdAt: message.createdAt,
+            snippet: searchSnippet(message.text, q),
+          })),
+          until: upper,
+          nextBefore,
+          complete: nextBefore === null,
+          windowSize: range.count,
+        },
+      }
+    })
+  }
+
+  async upload(channelId: string, principal: ChatPrincipal, input: AttachmentSubmission) {
+    const validated = validateAttachment(input)
+    if (validated instanceof ChatFailed) return { error: validated.reason }
+    const digest = [...new Uint8Array(await crypto.subtle.digest("SHA-256", input.data))]
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("")
+    return this.ctx.blockConcurrencyWhile(async () => {
+      const access = await new ChatAccessRepository(this.env.DB).findOne(channelId, principal)
+      if (!access) return { error: "forbidden" as const }
+      const attachments = new RoomAttachments(this.ctx.storage.sql)
+      const existing = attachments.findOne(channelId, input.id)
+      if (existing) {
+        if (
+          existing.memberId !== principal.memberId ||
+          existing.digest !== digest ||
+          existing.name !== validated.name ||
+          existing.mediaType !== validated.mediaType
+        )
+          return { error: "conflict" as const }
+        return { attachment: attachments.forMessage(existing.messageId)[0]! }
+      }
+      if (access.archived) return { error: "archived" as const }
+      const usage = attachments.usage()
+      if (usage.files >= usage.maxFiles || usage.bytes + input.data.byteLength > usage.maxBytes)
+        return { error: "capacity" as const }
+      if (
+        this.ctx.storage.sql.exec("SELECT id FROM messages WHERE id = ?", input.id).toArray().length
+      )
+        return { error: "conflict" as const }
+      const createdAt = Date.now()
+      const attachment = this.ctx.storage.transactionSync(() => {
+        this.ctx.storage.sql.exec(
+          "INSERT INTO messages (id,channelId,memberId,memberName,text,createdAt) VALUES (?, ?, ?, ?, ?, ?)",
+          input.id,
+          channelId,
+          principal.memberId,
+          access.memberName,
+          validated.name,
+          createdAt,
+        )
+        return attachments.create({
+          id: input.id,
+          channelId,
+          messageId: input.id,
+          memberId: principal.memberId,
+          ...validated,
+          size: input.data.byteLength,
+          digest,
+          data: input.data,
+          createdAt,
+        })
+      })
+      await this.broadcast()
+      return { attachment }
+    })
+  }
+
+  async attachments(channelId: string, principal: ChatPrincipal, before: number | null) {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      if (!(await new ChatAccessRepository(this.env.DB).findOne(channelId, principal)))
+        return { error: "forbidden" as const }
+      const rows = new RoomAttachments(this.ctx.storage.sql).findMany(
+        channelId,
+        before ?? Number.MAX_SAFE_INTEGER,
+      )
+      const items = rows.slice(0, 50)
+      return {
+        page: {
+          items,
+          nextBefore: rows.length > 50 ? items.at(-1)!.sequence : null,
+          usage: new RoomAttachments(this.ctx.storage.sql).usage(),
+        },
+      }
+    })
+  }
+
+  async attachment(channelId: string, principal: ChatPrincipal, id: string) {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      if (!(await new ChatAccessRepository(this.env.DB).findOne(channelId, principal)))
+        return { error: "forbidden" as const }
+      const row = new RoomAttachments(this.ctx.storage.sql).findOne(channelId, id)
+      if (!row) return { error: "missing" as const }
+      return { file: { name: row.name, data: row.data } }
     })
   }
 

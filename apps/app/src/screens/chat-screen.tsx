@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Search01Icon, Settings01Icon } from "@hugeicons/core-free-icons"
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +19,7 @@ import { Conversation } from "@/screens/conversation"
 import { MembersPanel } from "@/screens/members-panel"
 import { AccountPanel } from "@/screens/account-panel"
 import { ChannelSettingsPanel } from "@/screens/channel-settings-panel"
+import { SearchPanel } from "@/screens/search-panel"
 import { chatClient } from "@/client/chat-client"
 import { queryClient } from "@/client/query-client"
 import type { Member } from "@open-stack/sdk/contracts"
@@ -26,7 +29,9 @@ type Props = { viewer: Member }
 /** チャンネルと会話に画面を集中させる。 */
 export function ChatScreen(props: Props) {
   const selectedChannel = useState("general")
-  const panel = useState<"members" | "account" | "channel" | "channel-settings" | null>(null)
+  const panel = useState<"members" | "account" | "channel" | "channel-settings" | "search" | null>(
+    null,
+  )
   const channelName = useState("")
   const channelRequestId = useState<string | null>(null)
   const channels = useQuery({
@@ -111,9 +116,12 @@ export function ChatScreen(props: Props) {
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-4 sm:px-6">
-          <h2 className="hidden text-sm font-medium sm:block"># {channel?.name ?? "…"}</h2>
-          <div className="sm:hidden">
+          <h2 className="hidden min-w-0 flex-1 truncate text-sm font-medium sm:block">
+            # {channel?.name ?? "…"}
+          </h2>
+          <div className="min-w-0 flex-1 sm:hidden">
             <NativeSelect
+              className="w-full"
               aria-label="チャンネル"
               value={channel?.id ?? ""}
               onChange={(event) => selectedChannel[1](event.target.value)}
@@ -149,14 +157,26 @@ export function ChatScreen(props: Props) {
               設定
             </Button>
           </div>
+          {channel && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="メッセージ検索"
+              title="検索"
+              onClick={() => panel[1]("search")}
+            >
+              <HugeiconsIcon icon={Search01Icon} data-icon="inline-start" />
+            </Button>
+          )}
           {channel && props.viewer.role !== "member" && (
             <Button
               variant="ghost"
-              size="sm"
+              size="icon-sm"
               aria-label="チャンネル設定"
+              title="チャンネル設定"
               onClick={() => panel[1]("channel-settings")}
             >
-              編集
+              <HugeiconsIcon icon={Settings01Icon} data-icon="inline-start" />
             </Button>
           )}
         </header>
@@ -176,18 +196,23 @@ export function ChatScreen(props: Props) {
         <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>
-              {panel[0] === "members"
-                ? "メンバー"
-                : panel[0] === "account"
-                  ? "アカウント"
-                  : panel[0] === "channel-settings"
-                    ? "チャンネル設定"
-                    : "チャンネルを作成"}
+              {panel[0] === "search"
+                ? "検索"
+                : panel[0] === "members"
+                  ? "メンバー"
+                  : panel[0] === "account"
+                    ? "アカウント"
+                    : panel[0] === "channel-settings"
+                      ? "チャンネル設定"
+                      : "チャンネルを作成"}
             </DialogTitle>
             <DialogDescription className="sr-only">チームとアカウントの管理</DialogDescription>
           </DialogHeader>
           {panel[0] === "members" && <MembersPanel viewer={props.viewer} />}
           {panel[0] === "account" && <AccountPanel viewer={props.viewer} />}
+          {panel[0] === "search" && channel && (
+            <SearchPanel key={channel.id} channelId={channel.id} />
+          )}
           {panel[0] === "channel-settings" && channel && (
             <ChannelSettingsPanel key={channel.id} channel={channel} />
           )}

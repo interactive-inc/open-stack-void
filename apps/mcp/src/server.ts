@@ -15,6 +15,88 @@ const client = new VoidChatClient(connection)
 const browserAuthorization = new BrowserAuthorization(connection)
 const server = new McpServer({ name: "void-chat", version: "0.1.0" })
 const readOnly = { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
+server.registerTool(
+  "search_messages",
+  {
+    description:
+      "Search the selected public channel. Results are plain-text snippets, capped at 50; continue with nextBefore and until. Read the full message with read_message.",
+    inputSchema: z.object({
+      channel: z.string(),
+      q: z.string().trim().min(1).max(100),
+      before: z.number().int().positive().optional(),
+      until: z.number().int().nonnegative().optional(),
+    }),
+    annotations: readOnly,
+  },
+  (input) => toolResponse(() => client.search(input.channel, input.q, input.before, input.until)),
+)
+server.registerTool(
+  "read_message",
+  {
+    description: "Read a message with current server authorization",
+    inputSchema: z.object({ channel: z.string(), id: z.uuid() }),
+    annotations: readOnly,
+  },
+  (input) => toolResponse(() => client.message(input.channel, input.id)),
+)
+server.registerTool(
+  "list_attachments",
+  {
+    description:
+      "List authorized attachment metadata, up to 50 per page; no storage keys or signed URLs",
+    inputSchema: z.object({ channel: z.string(), before: z.number().int().positive().optional() }),
+    annotations: readOnly,
+  },
+  (input) => toolResponse(() => client.attachments(input.channel, input.before)),
+)
+server.registerTool(
+  "upload_attachment",
+  {
+    description:
+      "Post a file to a public channel. Supply canonical base64 of PNG/JPEG/WebP/UTF-8 text, up to 512KiB. Reuse requestId after an uncertain response. Authentication is browser-approved; never supply access tokens.",
+    inputSchema: z.object({
+      channel: z.string(),
+      name: z.string().min(1).max(120),
+      mediaType: z.enum(["image/png", "image/jpeg", "image/webp", "text/plain"]),
+      data: z
+        .string()
+        .min(1)
+        .max(699052)
+        .refine(
+          (value) =>
+            value.length <= 699052 &&
+            /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value),
+        ),
+      requestId: z.uuid(),
+    }),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  (input) =>
+    toolResponse(() =>
+      client.uploadAttachment(
+        input.channel,
+        input.name,
+        new Blob([new Uint8Array(Buffer.from(input.data, "base64"))], { type: input.mediaType }),
+        input.requestId,
+      ),
+    ),
+)
+server.registerTool(
+  "download_attachment",
+  {
+    description:
+      "Read an authorized attachment as base64 data. This returns file content, never a bearer URL or authentication token.",
+    inputSchema: z.object({ channel: z.string(), id: z.uuid() }),
+    annotations: readOnly,
+  },
+  (input) =>
+    toolResponse(async () => ({
+      id: input.id,
+      data: Buffer.from(
+        await (await client.downloadAttachment(input.channel, input.id)).arrayBuffer(),
+      ).toString("base64"),
+    })),
+)
 
 server.registerTool(
   "rename_profile",

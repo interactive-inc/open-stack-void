@@ -5,8 +5,39 @@ export function nodeFetch(input: string, options: RequestInit = {}): Promise<Res
   const url = new URL(input)
   if (url.protocol !== "http:" || url.hostname !== "app.void.stack.localhost")
     return fetch(input, options)
-  if (options.body !== undefined && typeof options.body !== "string")
-    return Promise.reject(new Error("Local requests require a string body"))
+  if (options.body instanceof FormData) {
+    let size = 0
+    let fields = 0
+    for (const [name, value] of options.body) {
+      if (
+        ++fields > 4 ||
+        name.length > 120 ||
+        (typeof value === "string"
+          ? value.length > 16_384
+          : value.name.length > 120 || value.type.length > 80)
+      )
+        return Promise.reject(new Error("Local multipart payload limit exceeded"))
+      size += typeof value === "string" ? Buffer.byteLength(value) : value.size
+      if (size > 512 * 1024 + 16_384)
+        return Promise.reject(new Error("Local multipart payload limit exceeded"))
+    }
+    const serialized = new Request(input, {
+      method: options.method ?? "POST",
+      headers: options.headers,
+      body: options.body,
+    })
+    return serialized
+      .arrayBuffer()
+      .then((body) =>
+        nodeFetch(input, { ...options, headers: serialized.headers, body: new Uint8Array(body) }),
+      )
+  }
+  if (
+    options.body !== undefined &&
+    typeof options.body !== "string" &&
+    !(options.body instanceof Uint8Array)
+  )
+    return Promise.reject(new Error("Local requests require a string or binary body"))
   return new Promise((resolve, reject) => {
     const headers = new Headers(options.headers)
     headers.set("Host", url.host)
@@ -21,7 +52,15 @@ export function nodeFetch(input: string, options: RequestInit = {}): Promise<Res
       },
       (incoming) => {
         const chunks: Buffer[] = []
-        incoming.on("data", (chunk: Buffer) => chunks.push(chunk))
+        let size = 0
+        incoming.on("data", (chunk: Buffer) => {
+          size += chunk.length
+          if (size > 2 * 1024 * 1024) {
+            incoming.destroy(new Error("Local response size limit exceeded"))
+            return
+          }
+          chunks.push(chunk)
+        })
         incoming.on("error", reject)
         incoming.on("end", () => {
           const responseHeaders = new Headers()

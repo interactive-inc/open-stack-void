@@ -8,6 +8,9 @@ import {
   passkeySchema,
   issuedTokenSchema,
   successSchema,
+  attachmentSchema,
+  attachmentPageSchema,
+  searchPageSchema,
 } from "./contracts"
 
 type Props = Readonly<{
@@ -60,7 +63,10 @@ export class VoidChatClient {
       credentials: "same-origin",
     }
 
-    if (body !== undefined) options.body = JSON.stringify(body)
+    if (body instanceof FormData) {
+      headers.delete("Content-Type")
+      options.body = body
+    } else if (body !== undefined) options.body = JSON.stringify(body)
 
     const response = await (this.props.request ?? fetch)(
       `${this.props.baseUrl.replace(/\/$/, "")}/api${path}`,
@@ -110,6 +116,87 @@ export class VoidChatClient {
       `/channels/${encodeURIComponent(channelId)}/messages${before ? `?before=${before}` : ""}`,
       messageSchema.array(),
     )
+  }
+  message(channelId: string, id: string) {
+    return this.request(
+      `/channels/${encodeURIComponent(channelId)}/messages/${encodeURIComponent(id)}`,
+      messageSchema,
+    )
+  }
+  search(channelId: string, q: string, before?: number, until?: number) {
+    return this.request(
+      `/channels/${encodeURIComponent(channelId)}/search`,
+      searchPageSchema,
+      "POST",
+      { q, before, until },
+    )
+  }
+  attachments(channelId: string, before?: number) {
+    return this.request(
+      `/channels/${encodeURIComponent(channelId)}/attachments${before === undefined ? "" : `?before=${before}`}`,
+      attachmentPageSchema,
+    )
+  }
+  async uploadAttachment(
+    channelId: string,
+    name: string,
+    file: Blob,
+    id: string = crypto.randomUUID(),
+  ) {
+    if (file.size > 512 * 1024) throw new RequestFailed(413, "添付は512KiB以下にしてください")
+    if (
+      !file.size ||
+      name.length > 120 ||
+      !name.trim() ||
+      !z.uuid().safeParse(id).success ||
+      !["image/png", "image/jpeg", "image/webp", "text/plain"].includes(file.type)
+    )
+      throw new RequestFailed(400, "PNG/JPEG/WebP/TXTのファイルを選んでください")
+    const form = new FormData()
+    form.set("id", id)
+    form.set("file", file, name)
+    return this.request(
+      `/channels/${encodeURIComponent(channelId)}/attachments`,
+      attachmentSchema,
+      "POST",
+      form,
+    )
+  }
+  async downloadAttachment(channelId: string, id: string) {
+    const headers = new Headers()
+    if (this.props.token) headers.set("Authorization", `Bearer ${this.props.token}`)
+    const response = await (this.props.request ?? fetch)(
+      `${this.props.baseUrl.replace(/\/$/, "")}/api/channels/${encodeURIComponent(channelId)}/attachments/${encodeURIComponent(id)}`,
+      { headers, credentials: "same-origin" },
+    )
+    if (!response.ok) {
+      const failure = z
+        .object({ error: z.string() })
+        .safeParse(await response.json().catch(() => null))
+      throw new RequestFailed(
+        response.status,
+        failure.success ? failure.data.error : `HTTP ${response.status}`,
+      )
+    }
+    const reader = response.body?.getReader()
+    if (!reader) throw new RequestFailed(502, "ファイルを取得できませんでした")
+    const chunks: BlobPart[] = []
+    let size = 0
+    try {
+      while (true) {
+        const part = await reader.read()
+        if (part.done) break
+        size += part.value.byteLength
+        if (size > 512 * 1024) {
+          await reader.cancel()
+          throw new RequestFailed(413, "添付は512KiB以下にしてください")
+        }
+        chunks.push(new Uint8Array(part.value))
+      }
+    } finally {
+      reader.releaseLock()
+    }
+    return new Blob(chunks, { type: "application/octet-stream" })
   }
   sendMessage(channelId: string, text: string, id: string = crypto.randomUUID()) {
     return this.request(

@@ -3,6 +3,9 @@ import { voidPlugin } from "void"
 import { voidReact } from "@void/react/plugin"
 import tailwindcss from "@tailwindcss/vite"
 import { fileURLToPath } from "node:url"
+import { devBodyLimit } from "../../scripts/dev-body-limit"
+import { bodyBudget } from "./src/api/body-budget"
+import { attachmentLimit } from "./src/contexts/chat/domain/attachment-limits"
 
 export default defineConfig({
   server: {
@@ -36,13 +39,7 @@ export default defineConfig({
   environments: {
     void_worker: {
       optimizeDeps: {
-        include: [
-          "hono",
-          "hono/body-limit",
-          "hono/cookie",
-          "hono/factory",
-          "@simplewebauthn/server",
-        ],
+        include: ["hono", "hono/cookie", "hono/factory", "@simplewebauthn/server"],
       },
     },
   },
@@ -53,6 +50,20 @@ export default defineConfig({
     },
   },
   plugins: [
+    {
+      name: "app-request-budget",
+      enforce: "pre",
+      configureServer(server) {
+        server.middlewares.use(
+          devBodyLimit((method, path) => bodyBudget(method, path, attachmentLimit)),
+        )
+      },
+      configurePreviewServer(server) {
+        server.middlewares.use(
+          devBodyLimit((method, path) => bodyBudget(method, path, attachmentLimit)),
+        )
+      },
+    },
     voidPlugin({ persistTo: process.env.VOID_CHAT_TEST_STATE ?? ".void" }),
     voidReact({ react: { compiler: true } }),
     tailwindcss(),

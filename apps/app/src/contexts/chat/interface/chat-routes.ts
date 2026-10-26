@@ -11,7 +11,10 @@ import { CreateChannel } from "@/contexts/chat/application/create-channel"
 import { RenameChannel } from "@/contexts/chat/application/rename-channel"
 import { SetChannelArchive } from "@/contexts/chat/application/set-channel-archive"
 import { ChannelControlRepository } from "@/contexts/chat/infrastructure/repositories/channel-control.repository"
-import type { Context } from "hono"
+import {
+  chatPrincipal as principal,
+  chatFailure as failure,
+} from "@/contexts/chat/interface/chat-http"
 import { ChatRoom } from "@app/durable-objects/chat-room"
 
 export const chatRoutes = new Hono<AppEnvironment>()
@@ -22,24 +25,6 @@ chatRoutes.get("/channels", async (context) =>
   context.json(await new ChannelRepository({ database: context.env.DB }).findMany()),
 )
 
-function principal(context: Context<AppEnvironment>) {
-  return {
-    memberId: context.get("member").id,
-    sessionHash: context.get("sessionHash"),
-    kind: context.get("sessionKind"),
-  }
-}
-function failure(context: Context<AppEnvironment>, error: ChatFailed) {
-  const status =
-    error.reason === "forbidden"
-      ? 403
-      : error.reason === "missing"
-        ? 404
-        : error.reason === "invalid"
-          ? 400
-          : 409
-  return context.json({ error: error.message }, status)
-}
 chatRoutes.post("/channels", async (context) => {
   const input = z
     .object({ id: z.uuid().default(() => crypto.randomUUID()), name: z.string() })

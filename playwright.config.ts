@@ -1,6 +1,9 @@
 import { defineConfig } from "@playwright/test"
+import { resolve } from "node:path"
 
-const state = `../../.local/app-suite-${Date.now()}`
+const state = process.env.VOID_CHAT_SUITE_STATE ?? `../../.local/app-suite-${Date.now()}`
+process.env.VOID_CHAT_SUITE_STATE = state
+process.env.VOID_CHAT_ROOM_FIXTURE_ROOT = resolve("apps/app", state, "app")
 
 export default defineConfig({
   testDir: "./test",
@@ -13,7 +16,8 @@ export default defineConfig({
     { name: "security", testMatch: "authorization.spec.ts", dependencies: ["journeys"] },
     { name: "invitations", testMatch: "invitations.spec.ts", dependencies: ["security"] },
     { name: "channels", testMatch: "channels.spec.ts", dependencies: ["invitations"] },
-    { name: "bootstrap", testMatch: "bootstrap.spec.ts", dependencies: ["channels"] },
+    { name: "content", testMatch: "content.spec.ts", dependencies: ["channels"] },
+    { name: "bootstrap", testMatch: "bootstrap.spec.ts", dependencies: ["content"] },
   ],
   use: {
     actionTimeout: 15_000,
