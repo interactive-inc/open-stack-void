@@ -134,7 +134,7 @@ server.registerTool(
 server.registerTool(
   "list_invitations",
   {
-    description: "List pending invitations (admin)",
+    description: "List pending, expired and currently unavailable invitations (admin)",
     inputSchema: z.object({}),
     annotations: readOnly,
   },
@@ -143,11 +143,12 @@ server.registerTool(
 server.registerTool(
   "invite_member",
   {
-    description: "Send an email invitation (admin)",
-    inputSchema: z.object({ email: z.email() }),
+    description:
+      "Create an email invitation (admin). Reuse requestId after an uncertain response; cancel the old invitation before resending.",
+    inputSchema: z.object({ email: z.email(), requestId: z.uuid().optional() }),
     annotations: { destructiveHint: false },
   },
-  (input) => toolResponse(() => client.invite(input.email)),
+  (input) => toolResponse(() => client.invite(input.email, input.requestId)),
 )
 server.registerTool(
   "revoke_invitation",

@@ -1,9 +1,10 @@
 import type { Member } from "@/contexts/membership/domain/member"
 import type { InvitationRepository } from "@/contexts/membership/infrastructure/repositories/invitation.repository"
 import type { InvitationMailAdapter } from "@/contexts/membership/infrastructure/adapters/invitation-mail.adapter"
+import { InvitationFailed } from "@/contexts/membership/domain/invitation-failed"
 
 type Context = Readonly<{
-  invitations: Pick<InvitationRepository, "create" | "delete">
+  invitations: Pick<InvitationRepository, "create" | "revokeUndelivered">
   mail: Pick<InvitationMailAdapter, "send">
 }>
 
@@ -16,17 +17,21 @@ export class InviteMember {
     invitation: { id: string; hash: string; email: string; expiresAt: number; link: string },
   ) {
     if (actor.status !== "active" || actor.role === "member")
-      return new Error("管理者権限が必要です")
+      return new InvitationFailed("forbidden")
 
-    await this.context.invitations.create({ ...invitation, invitedBy: actor.id })
+    const created = await this.context.invitations.create({ ...invitation, invitedBy: actor.id })
+    if (created instanceof InvitationFailed) return created
+    if (!created.created) return created.invitation
 
-    const failure = await this.context.mail.send(invitation.email, invitation.link)
+    const failure = await this.context.mail
+      .send(invitation.email, invitation.link)
+      .catch(() => new InvitationFailed("delivery"))
 
     if (failure) {
-      await this.context.invitations.delete(invitation.id)
-      return failure
+      await this.context.invitations.revokeUndelivered(invitation.id)
+      return new InvitationFailed("delivery")
     }
 
-    return { id: invitation.id, email: invitation.email, expiresAt: invitation.expiresAt }
+    return created.invitation
   }
 }

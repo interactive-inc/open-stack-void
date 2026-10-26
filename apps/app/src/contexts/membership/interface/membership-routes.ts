@@ -10,6 +10,8 @@ import { ChangeMemberRole } from "@/contexts/membership/application/change-membe
 import { DisableMember } from "@/contexts/membership/application/disable-member"
 import { RestoreMember } from "@/contexts/membership/application/restore-member"
 import { InviteMember } from "@/contexts/membership/application/invite-member"
+import { RevokeInvitation } from "@/contexts/membership/application/revoke-invitation"
+import { InvitationFailed } from "@/contexts/membership/domain/invitation-failed"
 import { RenameProfile } from "@/contexts/membership/application/rename-profile"
 import { ProfileUpdateFailed } from "@/contexts/membership/domain/profile-update-failed"
 import { createSecret } from "@/contexts/identity/infrastructure/adapters/create-secret"
@@ -44,7 +46,9 @@ membershipRoutes.post("/members/:id/restore", async (context) => {
 })
 
 membershipRoutes.patch("/members/:id", async (context) => {
-  const input = z.object({ role: z.enum(["admin", "member"]) }).parse(await context.req.json())
+  const input = z
+    .strictObject({ role: z.enum(["admin", "member"]) })
+    .parse(await context.req.json())
   const member = await new ChangeMemberRole({
     members: new MemberRepository({ database: context.env.DB }),
   }).execute(context.get("member"), context.req.param("id"), input.role)
@@ -72,46 +76,46 @@ membershipRoutes.get("/invitations", async (context) => {
   if (context.get("member").role === "member")
     return context.json({ error: "管理者権限が必要です" }, 403)
 
-  return context.json(await new InvitationRepository({ database: context.env.DB }).findMany())
+  const invitations = await new InvitationRepository({ database: context.env.DB }).findMany(
+    context.get("member").id,
+  )
+  if (invitations instanceof InvitationFailed)
+    return context.json({ error: invitations.message }, 403)
+  return context.json(invitations)
 })
 
 membershipRoutes.post("/invitations", async (context) => {
   const input = z
-    .object({
-      email: z
-        .email()
-        .max(254)
-        .transform((email) => email.toLowerCase()),
+    .strictObject({
+      id: z.uuid().optional(),
+      email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
     })
     .parse(await context.req.json())
-  const existing = await context.env.DB.prepare("SELECT id FROM chat_members WHERE email = ?")
-    .bind(input.email)
-    .first()
-
-  if (existing) return context.json({ error: "登録済みのメールアドレスです" }, 409)
-
   const token = createSecret()
   const invitation = await new InviteMember({
     invitations: new InvitationRepository({ database: context.env.DB }),
     mail: new InvitationMailAdapter(),
   }).execute(context.get("member"), {
-    id: crypto.randomUUID(),
+    id: input.id ?? crypto.randomUUID(),
     hash: await hashSecret(token),
     email: input.email,
     expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
     link: `${env.APP_ORIGIN}/#invite=${token}`,
   })
 
-  if (invitation instanceof Error) return context.json({ error: invitation.message }, 400)
+  if (invitation instanceof InvitationFailed) {
+    const status =
+      invitation.reason === "forbidden" ? 403 : invitation.reason === "delivery" ? 503 : 409
+    return context.json({ error: invitation.message }, status)
+  }
 
   return context.json(invitation, 201)
 })
 
 membershipRoutes.delete("/invitations/:id", async (context) => {
-  if (context.get("member").role === "member")
-    return context.json({ error: "管理者権限が必要です" }, 403)
-
-  await new InvitationRepository({ database: context.env.DB }).delete(context.req.param("id"))
-
-  return context.json({ ok: true })
+  const outcome = await new RevokeInvitation({
+    invitations: new InvitationRepository({ database: context.env.DB }),
+  }).execute(context.get("member"), context.req.param("id"))
+  if (outcome instanceof InvitationFailed) return context.json({ error: outcome.message }, 403)
+  return context.json(outcome)
 })

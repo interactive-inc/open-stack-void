@@ -22,6 +22,7 @@ export const invitationSchema = z.object({
   id: z.string(),
   email: z.string(),
   expiresAt: z.number(),
+  status: z.enum(["pending", "expired", "unavailable", "revoked", "accepted"]).default("pending"),
 })
 export const tokenSchema = z.object({
   id: z.string(),

@@ -12,7 +12,7 @@ export async function resolveRegistrationClaim(
   context: Context<AppEnvironment>,
 ): Promise<RegistrationClaim | Error> {
   const input = z
-    .object({
+    .strictObject({
       name: z.string().trim().min(1).max(80),
       invitation: z.string().max(128).nullable(),
       bootstrap: z.string().max(128).nullable(),
@@ -48,7 +48,7 @@ export async function resolveRegistrationClaim(
 
   const hash = await hashSecret(input.invitation ?? "")
   const invitation = await context.env.DB.prepare(
-    "SELECT email FROM chat_invitations WHERE hash = ? AND expires_at > ?",
+    "SELECT i.email FROM chat_invitations i JOIN chat_members m ON m.id = i.invited_by WHERE i.hash = ? AND i.state = 'pending' AND i.expires_at > ? AND m.status = 'active' AND m.role IN ('owner', 'admin')",
   )
     .bind(hash, Date.now())
     .first<{ email: string }>()

@@ -300,6 +300,39 @@
       "supersedes": [],
       "implementation": ["apps/app/src/screens/login-screen.tsx"],
       "verification": ["test/local.spec.ts"]
+    },
+    {
+      "id": "invitation-lifecycle",
+      "path": "apps/app/.docs/invitation-lifecycle.md",
+      "status": "current",
+      "kind": "decision",
+      "evidence": "inferred",
+      "source": "User requested invitation lifecycle and membership hardening; security/retry semantics and limitations are explicitly separated in prose.",
+      "related": ["chat-security", "member-profile", "harness-intent"],
+      "supersedes": [],
+      "implementation": [
+        "apps/app/src/contexts/membership",
+        "apps/app/src/contexts/identity/interface/resolve-registration-claim.ts",
+        "apps/app/src/contexts/identity/infrastructure/repositories/registration.repository.ts",
+        "apps/app/src/screens/members-panel.tsx",
+        "packages/sdk/src/contracts.ts",
+        "packages/sdk/src/void-chat-client.ts",
+        "playwright.config.ts",
+        "apps/cli/src/create-cli.ts",
+        "apps/mcp/src/server.ts",
+        "package.json",
+        "package-lock.json",
+        "apps/app/db/migrations"
+      ],
+      "verification": [
+        "apps/app/src/contexts/membership/application/invite-member.test.ts",
+        "apps/app/src/contexts/membership/application/revoke-invitation.test.ts",
+        "apps/app/src/contexts/membership/application/change-member.test.ts",
+        "test/invitations.spec.ts",
+        "test/invitation-fixture.ts",
+        "test/local.spec.ts",
+        "apps/app/src/contexts/membership/infrastructure/invitation-migration.test.ts"
+      ]
     }
   ],
   "exceptions": []

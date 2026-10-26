@@ -1,0 +1,1 @@
+ALTER TABLE `chat_invitations` ADD `state` text DEFAULT 'pending' NOT NULL;

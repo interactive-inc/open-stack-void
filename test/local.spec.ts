@@ -216,6 +216,27 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
     role: "owner",
     email: owner.email,
   })
+  const cliInvitation = crypto.randomUUID()
+  for (const retry of [1, 2]) {
+    void retry
+    await createCli({
+      readClipboard: async () => token,
+      print: (value) => printed.push(value),
+      openBrowser: () => {},
+    }).parseAsync([
+      "node",
+      "void-chat",
+      "--server",
+      "http://localhost:5183",
+      "--clipboard",
+      "invitations",
+      "create",
+      `cli-invite-${suffix}@example.com`,
+      "--request-id",
+      cliInvitation,
+    ])
+    expect(printed.at(-1)).toMatchObject({ id: cliInvitation, status: "pending" })
+  }
   const mcp = new Client({ name: "local-test", version: "1.0.0" })
   const mcpEnvironment = Object.fromEntries(
     Object.entries({ ...process.env, VOID_CHAT_URL: "http://localhost:5183" }).filter(
@@ -264,6 +285,20 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
   expect(
     await (await page.request.get("/api/me", { headers: authorization })).json(),
   ).toMatchObject({ id: owner.id, name: "MCP Owner", role: "owner", email: owner.email })
+  const mcpInvitation = crypto.randomUUID()
+  for (const retry of [1, 2]) {
+    void retry
+    const invited = await mcp.callTool({
+      name: "invite_member",
+      arguments: { email: `mcp-invite-${suffix}@example.com`, requestId: mcpInvitation },
+    })
+    expect(invited.isError).not.toBe(true)
+  }
+  expect(
+    (await (await page.request.get("/api/invitations", { headers: authorization })).json()).filter(
+      (invitation: { id: string }) => invitation.id === mcpInvitation,
+    ),
+  ).toHaveLength(1)
   await mcp.close()
   await page.goto("/")
 

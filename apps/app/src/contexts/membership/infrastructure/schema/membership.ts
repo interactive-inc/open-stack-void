@@ -13,6 +13,7 @@ export const invitations = sqliteTable("chat_invitations", {
   id: text("id").primaryKey(),
   hash: text("hash").notNull().unique(),
   email: text("email").notNull(),
+  state: text("state").notNull().default("pending"),
   invitedBy: text("invited_by")
     .notNull()
     .references(() => members.id),

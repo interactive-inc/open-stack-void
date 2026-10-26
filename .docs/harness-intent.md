@@ -20,6 +20,8 @@ The first increment makes dependency direction, document traceability, full veri
 
 Remaining: complete channel membership and privacy across all transports; role/invitation/settings lifecycle; durable ordering/reconnect/search and media authorization; interruption UI; isolated multi-user/concurrent regression expansion. Each requires a tested vertical increment and updated rationale. Existing simulated passkeys do not establish real-device support. No actual release/tag/deployment is authorized by a release plan.
 
+The next bounded increment hardens invitation and membership authority; [[invitation-lifecycle]] is the decision record for retries, settled request IDs, current-inviter checks, role races and migration compatibility. Broader workspace/channel management and reliable delivery/outbox operations remain separate work. Retention and administrator access to uninvited private channels remain open questions, not confirmed defaults.
+
 ## Initial verification evidence
 
 The first full local run passed all five builds, type/lint/format checks, 17 existing unit/policy cases, six new harness cases, and eight isolated browser cases including CMS edits/99 link transitions and named origins. The final increment adds a pinned local scanner setup for Windows/macOS/Linux, layout/client-boundary checks and local changed-document impact detection. Windows is exercised here; macOS/Linux execution remains unverified. Retention and admin-private-access questions remain pending, and no dependent chat policy has been implemented.

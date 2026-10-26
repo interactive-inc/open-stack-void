@@ -89,7 +89,10 @@ export function createCli(props: Props) {
   invitations.command("list").action(async () => props.print(await (await client()).invitations()))
   invitations
     .command("create <email>")
-    .action(async (email) => props.print(await (await client()).invite(email)))
+    .option("--request-id <uuid>", "Reuse the same request ID after an uncertain response")
+    .action(async (email: string, options: { requestId?: string }) =>
+      props.print(await (await client()).invite(email, options.requestId)),
+    )
   invitations
     .command("revoke <id>")
     .action(async (id) => props.print(await (await client()).revokeInvitation(id)))

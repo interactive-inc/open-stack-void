@@ -18,7 +18,7 @@ export class RegistrationRepository {
         statements.push(
           database
             .prepare(
-              "INSERT INTO chat_members (id, email, name, role, status, created_at) SELECT ?, ?, ?, 'member', 'active', ? FROM chat_invitations WHERE hash = ? AND email = ? AND expires_at > ?",
+              "INSERT INTO chat_members (id, email, name, role, status, created_at) SELECT ?, ?, ?, 'member', 'active', ? FROM chat_invitations i JOIN chat_members inviter ON inviter.id = i.invited_by WHERE i.hash = ? AND i.state = 'pending' AND i.email = ? AND i.expires_at > ? AND inviter.status = 'active' AND inviter.role IN ('owner', 'admin')",
             )
             .bind(
               claim.id,
@@ -77,7 +77,11 @@ export class RegistrationRepository {
 
     if (claim.inviteHash)
       statements.push(
-        database.prepare("DELETE FROM chat_invitations WHERE hash = ?").bind(claim.inviteHash),
+        database
+          .prepare(
+            "UPDATE chat_invitations SET state = 'accepted', expires_at = 0 WHERE hash = ? AND state = 'pending'",
+          )
+          .bind(claim.inviteHash),
       )
 
     const writes = await database.batch(statements).catch(() => null)

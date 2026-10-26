@@ -1,5 +1,4 @@
 import { memberSchema } from "@/contexts/membership/domain/member"
-import type { Member } from "@/contexts/membership/domain/member"
 
 type Context = Readonly<{ database: D1Database }>
 
@@ -39,12 +38,23 @@ export class MemberRepository {
     return member ? memberSchema.parse(member) : null
   }
 
-  async write(member: Member) {
-    await this.context.database
-      .prepare("UPDATE chat_members SET role = ?, status = ? WHERE id = ? AND role != 'owner'")
-      .bind(member.role, member.status, member.id)
-      .run()
+  async changeRole(actorId: string, memberId: string, role: "admin" | "member") {
+    const member = await this.context.database
+      .prepare(
+        "UPDATE chat_members SET role = ? WHERE id = ? AND id != ? AND role != 'owner' AND EXISTS (SELECT 1 FROM chat_members actor WHERE actor.id = ? AND actor.status = 'active' AND actor.role = 'owner') RETURNING id, email, name, role, status, created_at AS createdAt",
+      )
+      .bind(role, memberId, actorId, actorId)
+      .first()
+    return member ? memberSchema.parse(member) : null
+  }
 
-    return member
+  async setStatus(actorId: string, memberId: string, status: "active" | "disabled") {
+    const member = await this.context.database
+      .prepare(
+        "UPDATE chat_members SET status = ? WHERE id = ? AND id != ? AND role != 'owner' AND EXISTS (SELECT 1 FROM chat_members actor WHERE actor.id = ? AND actor.status = 'active' AND (actor.role = 'owner' OR (actor.role = 'admin' AND chat_members.role = 'member'))) RETURNING id, email, name, role, status, created_at AS createdAt",
+      )
+      .bind(status, memberId, actorId, actorId)
+      .first()
+    return member ? memberSchema.parse(member) : null
   }
 }

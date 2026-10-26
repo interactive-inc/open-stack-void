@@ -108,8 +108,8 @@ export class VoidChatClient {
   invitations() {
     return this.request("/invitations", invitationSchema.array())
   }
-  invite(email: string) {
-    return this.request("/invitations", invitationSchema, "POST", { email })
+  invite(email: string, id: string = crypto.randomUUID()) {
+    return this.request("/invitations", invitationSchema, "POST", { email, id })
   }
   revokeInvitation(id: string) {
     return this.request(`/invitations/${encodeURIComponent(id)}`, successSchema, "DELETE")
