@@ -46,7 +46,8 @@
       "verification": [
         "scripts/architecture-policy.test.mjs",
         "scripts/docs-policy.test.mjs",
-        "scripts/release-candidate.test.mjs"
+        "scripts/release-candidate.test.mjs",
+        "test/portless.spec.ts"
       ],
       "source": "User request: reusable nondeveloper workflow, active dialogue, fixed conventions and living rationale; implementation observations are identified in prose."
     },

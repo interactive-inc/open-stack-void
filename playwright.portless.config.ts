@@ -22,6 +22,7 @@ export default defineConfig({
       APP_ORIGIN: "http://app.void.stack.localhost",
       BOOTSTRAP_TOKEN: "portless-e2e-only-key",
       ADMIN_EMAIL: "portless-test@example.com",
+      VOID_TEST_DIAGNOSTICS: "1",
     },
   },
 })

@@ -4,6 +4,7 @@ import { VoidChatClient } from "../packages/sdk/src/void-chat-client"
 import { createCli } from "../apps/cli/src/create-cli"
 import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
+import { portlessStateDiagnostics } from "../scripts/portless-diagnostics.mjs"
 
 test("named local origins preserve passkeys, cookies, sockets and client authorization", async ({
   page,
@@ -23,7 +24,49 @@ test("named local origins preserve passkeys, cookies, sockets and client authori
       automaticPresenceSimulation: true,
     },
   })
-  await page.goto(app)
+  const navigation = await page.goto(app)
+  const browserState = await page.evaluate(async () => {
+    async function probe(path: string) {
+      const response = await fetch(path)
+      const body = await response.json().catch(() => null)
+      return {
+        status: response.status,
+        service: body?.service === "void-chat",
+        canBootstrap: body?.canBootstrap === true,
+      }
+    }
+    return { health: await probe("/api/health"), registration: await probe("/api/auth/status") }
+  })
+  const direct = await nodeFetch(`${app}/api/auth/status`, {}).then(async (response) => ({
+    status: response.status,
+    canBootstrap: (await response.json().catch(() => null))?.canBootstrap === true,
+  }))
+  const backend = await nodeFetch("http://127.0.0.1:5173/api/auth/status", {
+    headers: { Host: "app.void.stack.localhost" },
+  }).then(async (response) => ({
+    status: response.status,
+    canBootstrap: (await response.json().catch(() => null))?.canBootstrap === true,
+  }))
+  const isolatedState = portlessStateDiagnostics()
+  console.log(
+    JSON.stringify({
+      kind: "portless-test-preconditions",
+      navigationStatus: navigation?.status(),
+      browserState,
+      direct,
+      backend,
+      pageTitle: await page.title(),
+      loginVisible: await page
+        .getByRole("button", { name: "パスキーでログイン", exact: true })
+        .isVisible(),
+      isolatedState,
+    }),
+  )
+  expect(browserState.health).toMatchObject({ status: 200, service: true })
+  expect(browserState.registration).toMatchObject({ status: 200, canBootstrap: true })
+  expect(direct).toEqual({ status: 200, canBootstrap: true })
+  expect(backend).toEqual({ status: 200, canBootstrap: true })
+  expect(isolatedState.databases).toContainEqual({ members: 0, bootstrapClaims: 0 })
   expect(await page.evaluate(() => isSecureContext)).toBe(true)
   const socket = page.waitForEvent("websocket")
   await page.getByLabel("名前", { exact: true }).fill("Portless Owner")

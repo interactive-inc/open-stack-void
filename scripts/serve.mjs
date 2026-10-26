@@ -5,6 +5,16 @@ const app = process.argv[2]
 if (!["app", "site"].includes(app)) throw new Error("Unknown development app")
 const cli = packageBin(process.cwd(), app === "app" ? "vite" : "astro")
 const environment = { ...process.env }
+if (environment.VOID_TEST_DIAGNOSTICS === "1")
+  console.error(
+    JSON.stringify({
+      kind: "test-server-environment",
+      app,
+      bootstrapConfigured: Boolean(environment.BOOTSTRAP_TOKEN),
+      isolatedStateConfigured: Boolean(environment.VOID_CHAT_TEST_STATE),
+      originConfigured: Boolean(environment.APP_ORIGIN),
+    }),
+  )
 delete environment.__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
 const child = spawn(
   process.execPath,
