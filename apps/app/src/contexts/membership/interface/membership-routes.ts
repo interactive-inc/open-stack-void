@@ -10,12 +10,24 @@ import { ChangeMemberRole } from "@/contexts/membership/application/change-membe
 import { DisableMember } from "@/contexts/membership/application/disable-member"
 import { RestoreMember } from "@/contexts/membership/application/restore-member"
 import { InviteMember } from "@/contexts/membership/application/invite-member"
+import { RenameProfile } from "@/contexts/membership/application/rename-profile"
+import { ProfileUpdateFailed } from "@/contexts/membership/domain/profile-update-failed"
 import { createSecret } from "@/contexts/identity/infrastructure/adapters/create-secret"
 import { hashSecret } from "@/contexts/identity/infrastructure/adapters/hash-secret"
 
 export const membershipRoutes = new Hono<AppEnvironment>()
 
 membershipRoutes.use("*", authenticate)
+
+membershipRoutes.patch("/me", async (context) => {
+  const input = z.strictObject({ name: z.string() }).parse(await context.req.json())
+  const member = await new RenameProfile({
+    members: new MemberRepository({ database: context.env.DB }),
+  }).execute(context.get("member"), input.name)
+  if (member instanceof ProfileUpdateFailed)
+    return context.json({ error: member.message }, member.reason === "invalid-name" ? 400 : 403)
+  return context.json(member)
+})
 
 membershipRoutes.get("/members", async (context) =>
   context.json(await new MemberRepository({ database: context.env.DB }).findMany()),

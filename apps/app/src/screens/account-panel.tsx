@@ -16,6 +16,14 @@ type Props = { viewer: Member }
 /** パスキーと外部クライアントのアクセスを管理する。 */
 export function AccountPanel(props: Props) {
   const name = useState("")
+  const profileName = useState(props.viewer.name)
+  const rename = useMutation({
+    mutationFn: () => chatClient.renameProfile(profileName[0]),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["me"] })
+      await queryClient.invalidateQueries({ queryKey: ["members"] })
+    },
+  })
   const issuedToken = useState<string | null>(null)
   const copied = useState(false)
   const tokens = useQuery({ queryKey: ["tokens"], queryFn: () => chatClient.tokens() })
@@ -31,6 +39,45 @@ export function AccountPanel(props: Props) {
   return (
     <div className="grid gap-5">
       <p className="text-sm text-muted-foreground">{props.viewer.email}</p>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          rename.mutate()
+        }}
+      >
+        <FieldGroup>
+          <Field data-invalid={!!rename.error}>
+            <FieldLabel htmlFor="profile-name">表示名</FieldLabel>
+            <div className="flex gap-2">
+              <Input
+                id="profile-name"
+                value={profileName[0]}
+                onChange={(event) => {
+                  profileName[1](event.target.value)
+                  rename.reset()
+                }}
+                disabled={rename.isPending}
+                required
+                maxLength={80}
+                aria-invalid={!!rename.error}
+              />
+              <Button type="submit" disabled={rename.isPending || !profileName[0].trim()}>
+                保存
+              </Button>
+            </div>
+            {rename.error && (
+              <p role="alert" className="text-sm text-destructive">
+                {rename.error.message}
+              </p>
+            )}
+            {rename.isSuccess && (
+              <p role="status" className="text-sm text-muted-foreground">
+                保存しました
+              </p>
+            )}
+          </Field>
+        </FieldGroup>
+      </form>
       {(mutation.error || tokens.error || passkeys.error) && (
         <Alert variant="destructive">
           <AlertDescription>

@@ -17,6 +17,16 @@ const server = new McpServer({ name: "void-chat", version: "0.1.0" })
 const readOnly = { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
 
 server.registerTool(
+  "rename_profile",
+  {
+    description: "Change only the authenticated member's display name",
+    inputSchema: z.object({ name: z.string().trim().min(1).max(80) }),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  (input) => toolResponse(() => client.renameProfile(input.name)),
+)
+
+server.registerTool(
   "begin_login",
   {
     description:

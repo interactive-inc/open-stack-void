@@ -43,6 +43,9 @@ export function createCli(props: Props) {
     props.print({ message: "初期化キーをブラウザへ貼り付け、パスキーを登録してください。" })
   })
   command.command("me").action(async () => props.print(await (await client()).me()))
+  command
+    .command("profile-name <name>")
+    .action(async (name: string) => props.print(await (await client()).renameProfile(name)))
 
   const channels = command.command("channels")
   channels.command("list").action(async () => props.print(await (await client()).channels()))

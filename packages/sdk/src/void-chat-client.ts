@@ -73,6 +73,9 @@ export class VoidChatClient {
   channels() {
     return this.request("/channels", channelSchema.array())
   }
+  renameProfile(name: string) {
+    return this.request("/me", memberSchema, "PATCH", { name })
+  }
   createChannel(name: string) {
     return this.request("/channels", channelSchema, "POST", { name })
   }

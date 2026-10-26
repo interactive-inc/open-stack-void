@@ -29,6 +29,16 @@ export class MemberRepository {
     return members.results.map((member) => memberSchema.parse(member))
   }
 
+  async renameProfile(memberId: string, name: string) {
+    const member = await this.context.database
+      .prepare(
+        "UPDATE chat_members SET name = ? WHERE id = ? AND status = 'active' RETURNING id, email, name, role, status, created_at AS createdAt",
+      )
+      .bind(name, memberId)
+      .first()
+    return member ? memberSchema.parse(member) : null
+  }
+
   async write(member: Member) {
     await this.context.database
       .prepare("UPDATE chat_members SET role = ?, status = ? WHERE id = ? AND role != 'owner'")

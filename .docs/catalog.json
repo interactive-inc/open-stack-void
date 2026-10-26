@@ -265,6 +265,27 @@
       "implementation": [],
       "verification": [],
       "source": "Existing repository rationale or explicit core contract adopted in the harness increment; inspect linked prose for historical scope."
+    },
+    {
+      "id": "member-profile",
+      "path": "apps/app/.docs/member-profile.md",
+      "status": "current",
+      "kind": "decision",
+      "evidence": "inferred",
+      "source": "User requested usable settings; self-service display-name-only scope is a reversible implementation assumption, documented in prose.",
+      "related": ["chat-security", "harness-intent"],
+      "supersedes": [],
+      "implementation": [
+        "apps/app/src/contexts/membership",
+        "apps/app/src/screens/account-panel.tsx",
+        "packages/sdk/src/void-chat-client.ts",
+        "apps/cli/src/create-cli.ts",
+        "apps/mcp/src/server.ts"
+      ],
+      "verification": [
+        "apps/app/src/contexts/membership/application/rename-profile.test.ts",
+        "test/local.spec.ts"
+      ]
     }
   ],
   "exceptions": []

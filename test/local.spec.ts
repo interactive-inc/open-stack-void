@@ -71,6 +71,21 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
   await page.screenshot({ path: ".local/void-chat-desktop.png" })
 
   await page.getByRole("button", { name: "アカウント設定", exact: true }).click()
+  await page.getByLabel("表示名", { exact: true }).fill("Owner Renamed")
+  await page.route("**/api/me", async (route) => {
+    if (route.request().method() === "PATCH") await route.abort("failed")
+    else await route.continue()
+  })
+  await page.getByRole("button", { name: "保存", exact: true }).click()
+  await expect(page.getByRole("alert")).toBeVisible()
+  await expect(page.getByLabel("表示名", { exact: true })).toHaveValue("Owner Renamed")
+  await page.unroute("**/api/me")
+  await page.getByRole("button", { name: "保存", exact: true }).click()
+  await expect(page.getByRole("status")).toHaveText("保存しました")
+  expect(await (await page.request.get("/api/me")).json()).toMatchObject({
+    name: "Owner Renamed",
+    role: "owner",
+  })
   await page.getByLabel("CLI / MCP トークン · 30日間").fill(`test-${suffix}`)
   await page.getByRole("button", { name: "発行", exact: true }).click()
   const token = await page.getByLabel("一度だけ表示されます").inputValue()
@@ -81,6 +96,30 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
   const identity = await page.request.get("/api/me", { headers: authorization })
   expect(identity.status()).toBe(200)
   const owner = await identity.json()
+  const beforeProfile = await identity.json()
+  for (const data of [
+    { name: " " },
+    { name: "x".repeat(81) },
+    { name: "Injected", role: "admin" },
+    { name: "Injected", id: "other" },
+    { name: "Injected", email: "other@example.com" },
+  ])
+    expect((await page.request.patch("/api/me", { headers: authorization, data })).status()).toBe(
+      400,
+    )
+  expect(await (await page.request.get("/api/me", { headers: authorization })).json()).toEqual(
+    beforeProfile,
+  )
+  const anonymous = await browser.newContext()
+  expect(
+    (
+      await anonymous.request.patch("http://localhost:5183/api/me", {
+        headers: { Origin: "http://localhost:5183" },
+        data: { name: "Anonymous" },
+      })
+    ).status(),
+  ).toBe(401)
+  await anonymous.close()
   expect(
     (await page.request.delete(`/api/members/${owner.id}`, { headers: authorization })).status(),
   ).toBe(403)
@@ -142,6 +181,25 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
     openBrowser: () => {},
   }).parseAsync(["node", "void-chat", "--server", "http://localhost:5183", "--clipboard", "me"])
   expect(printed[0]).toMatchObject({ id: owner.id })
+  await createCli({
+    readClipboard: async () => token,
+    print: (value) => printed.push(value),
+    openBrowser: () => {},
+  }).parseAsync([
+    "node",
+    "void-chat",
+    "--server",
+    "http://localhost:5183",
+    "--clipboard",
+    "profile-name",
+    "CLI Owner",
+  ])
+  expect(printed.at(-1)).toMatchObject({
+    id: owner.id,
+    name: "CLI Owner",
+    role: "owner",
+    email: owner.email,
+  })
   const mcp = new Client({ name: "local-test", version: "1.0.0" })
   const mcpEnvironment = Object.fromEntries(
     Object.entries({ ...process.env, VOID_CHAT_URL: "http://localhost:5183" }).filter(
@@ -157,6 +215,9 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
   )
   expect((await mcp.listTools()).tools.map((tool) => tool.name)).toContain("send_message")
   expect((await mcp.callTool({ name: "whoami", arguments: {} })).isError).toBe(true)
+  expect(
+    (await mcp.callTool({ name: "rename_profile", arguments: { name: "Anonymous" } })).isError,
+  ).toBe(true)
   const loginRequest = await mcp.callTool({ name: "begin_login", arguments: {} })
   const requestContent = loginRequest.content
   expect(Array.isArray(requestContent)).toBe(true)
@@ -181,6 +242,12 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
   expect(completedLogin.isError).not.toBe(true)
   expect(JSON.stringify(completedLogin)).not.toContain('"token"')
   expect((await mcp.callTool({ name: "whoami", arguments: {} })).isError).not.toBe(true)
+  expect(
+    (await mcp.callTool({ name: "rename_profile", arguments: { name: "MCP Owner" } })).isError,
+  ).not.toBe(true)
+  expect(
+    await (await page.request.get("/api/me", { headers: authorization })).json(),
+  ).toMatchObject({ id: owner.id, name: "MCP Owner", role: "owner", email: owner.email })
   await mcp.close()
   await page.goto("/")
 
@@ -221,6 +288,20 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
   const guestMe = await (await guestPage.request.get("/api/me")).json()
   expect(
     (
+      await guestPage.request.patch("/api/me", {
+        headers: { Origin: "http://localhost:5183" },
+        data: { name: "Member Renamed" },
+      })
+    ).status(),
+  ).toBe(200)
+  expect(await (await guestPage.request.get("/api/me")).json()).toMatchObject({
+    id: guestMe.id,
+    name: "Member Renamed",
+    role: "member",
+    email: guestMe.email,
+  })
+  expect(
+    (
       await guestPage.request.post("/api/channels", {
         headers: { Origin: "http://localhost:5183" },
         data: { name: "forbidden" },
@@ -231,6 +312,14 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
     (await page.request.delete(`/api/members/${guestMe.id}`, { headers: authorization })).status(),
   ).toBe(200)
   expect((await guestPage.request.get("/api/channels")).status()).toBe(401)
+  expect(
+    (
+      await guestPage.request.patch("/api/me", {
+        headers: { Origin: "http://localhost:5183" },
+        data: { name: "Disabled" },
+      })
+    ).status(),
+  ).toBe(401)
   expect(
     (
       await page.request.post("/api/auth/register/options", {
