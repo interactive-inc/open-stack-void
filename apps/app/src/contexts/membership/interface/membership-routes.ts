@@ -9,6 +9,7 @@ import { InvitationMailAdapter } from "@/contexts/membership/infrastructure/adap
 import { ChangeMemberRole } from "@/contexts/membership/application/change-member-role"
 import { DisableMember } from "@/contexts/membership/application/disable-member"
 import { RestoreMember } from "@/contexts/membership/application/restore-member"
+import { DispatchInvitation } from "@/contexts/membership/application/dispatch-invitation"
 import { InviteMember } from "@/contexts/membership/application/invite-member"
 import { RevokeInvitation } from "@/contexts/membership/application/revoke-invitation"
 import { InvitationFailed } from "@/contexts/membership/domain/invitation-failed"
@@ -16,6 +17,17 @@ import { RenameProfile } from "@/contexts/membership/application/rename-profile"
 import { ProfileUpdateFailed } from "@/contexts/membership/domain/profile-update-failed"
 import { createSecret } from "@/contexts/identity/infrastructure/adapters/create-secret"
 import { hashSecret } from "@/contexts/identity/infrastructure/adapters/hash-secret"
+
+function dispatcher(database: D1Database) {
+  return new DispatchInvitation({
+    invitations: new InvitationRepository({ database }),
+    mail: new InvitationMailAdapter(),
+    issueLink: async () => {
+      const token = createSecret()
+      return { hash: await hashSecret(token), link: `${env.APP_ORIGIN}/#invite=${token}` }
+    },
+  })
+}
 
 export const membershipRoutes = new Hono<AppEnvironment>()
 
@@ -91,25 +103,51 @@ membershipRoutes.post("/invitations", async (context) => {
       email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
     })
     .parse(await context.req.json())
-  const token = createSecret()
   const invitation = await new InviteMember({
     invitations: new InvitationRepository({ database: context.env.DB }),
-    mail: new InvitationMailAdapter(),
   }).execute(context.get("member"), {
     id: input.id ?? crypto.randomUUID(),
-    hash: await hashSecret(token),
+    hash: await hashSecret(createSecret()),
     email: input.email,
     expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    link: `${env.APP_ORIGIN}/#invite=${token}`,
   })
 
   if (invitation instanceof InvitationFailed) {
-    const status =
-      invitation.reason === "forbidden" ? 403 : invitation.reason === "delivery" ? 503 : 409
+    const status = invitation.reason === "forbidden" ? 403 : 409
     return context.json({ error: invitation.message }, status)
   }
 
-  return context.json(invitation, 201)
+  // Duplicate create requests only read the recorded intent; queued work is resumed explicitly.
+  if (invitation.created)
+    await dispatcher(context.env.DB).execute(context.get("member"), {
+      id: invitation.invitation.id,
+      attempts: 0,
+      acknowledgeUnknown: false,
+    })
+  const current = await new InvitationRepository({ database: context.env.DB }).findMany(
+    context.get("member").id,
+    invitation.invitation.id,
+  )
+  if (current instanceof InvitationFailed) return context.json({ error: current.message }, 403)
+  return context.json(current[0], 201)
+})
+
+membershipRoutes.post("/invitations/:id/retry", async (context) => {
+  const input = z
+    .strictObject({ attempts: z.number().int().min(0).max(3), acknowledgeUnknown: z.boolean() })
+    .parse(await context.req.json())
+  const outcome = await dispatcher(context.env.DB).execute(context.get("member"), {
+    ...input,
+    id: z.uuid().parse(context.req.param("id")),
+  })
+  if (outcome instanceof InvitationFailed)
+    return context.json({ error: outcome.message }, outcome.reason === "forbidden" ? 403 : 409)
+  const current = await new InvitationRepository({ database: context.env.DB }).findMany(
+    context.get("member").id,
+    context.req.param("id"),
+  )
+  if (current instanceof InvitationFailed) return context.json({ error: current.message }, 403)
+  return context.json(current[0])
 })
 
 membershipRoutes.delete("/invitations/:id", async (context) => {

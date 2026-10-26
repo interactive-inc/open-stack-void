@@ -401,6 +401,34 @@
         "apps/app/src/api/limit-body.test.ts",
         "scripts/dev-body-limit.test.mjs"
       ]
+    },
+    {
+      "id": "invitation-delivery-recovery",
+      "path": "apps/app/.docs/invitation-delivery-recovery.md",
+      "status": "current",
+      "kind": "decision",
+      "evidence": "inferred",
+      "source": "User-authorized bounded invitation recovery; budgets and credential-free manual dispatch are inferred reversible choices; no production operations or new secrets.",
+      "related": ["invitation-lifecycle", "chat-security", "harness-intent"],
+      "supersedes": [],
+      "implementation": [
+        "apps/app/src/contexts/membership",
+        "apps/app/src/screens/members-panel.tsx",
+        "apps/app/db/migrations",
+        "packages/sdk/src",
+        "apps/cli/src/create-cli.ts",
+        "apps/mcp/src/server.ts",
+        "apps/app/AGENTS.md"
+      ],
+      "verification": [
+        "apps/app/src/contexts/membership/infrastructure/invitation-outbox.test.ts",
+        "apps/app/src/contexts/membership/infrastructure/adapters/invitation-mail.adapter.test.ts",
+        "apps/app/src/contexts/membership/application/invite-member.test.ts",
+        "apps/app/src/contexts/membership/infrastructure/invitation-migration.test.ts",
+        "test/invitations.spec.ts",
+        "test/invitation-delivery-fixture.ts",
+        "test/local.spec.ts"
+      ]
     }
   ],
   "exceptions": []

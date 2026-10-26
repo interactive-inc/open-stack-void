@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test"
+import { setDeliveryFixture } from "./invitation-delivery-fixture"
 import {
   origin,
   headers,
@@ -362,6 +363,105 @@ test("two simultaneous passkey acceptances commit exactly one ordinary member", 
   } finally {
     barrier.resolve()
     await Promise.all(guests.map((guest) => guest.context.close()))
+    await owner.close()
+  }
+})
+
+test("unknown delivery recovery requires confirmation, invalidates the old link and respects cancellation", async ({
+  browser,
+}) => {
+  const owner = await ownerSession(browser)
+  const outsider = await guestSession(browser)
+  try {
+    const invite = await issueInvitation(owner)
+    const before = await mailbox(owner.page.request)
+    setDeliveryFixture(invite.id, "sending", 1)
+    const retry = (attempts: number, acknowledgeUnknown = false) =>
+      owner.page.request.post(`${origin}/api/invitations/${invite.id}/retry`, {
+        headers,
+        data: { attempts, acknowledgeUnknown },
+      })
+    expect((await retry(1)).status()).toBe(409)
+    expect(
+      (
+        await outsider.page.request.post(`${origin}/api/invitations/${invite.id}/retry`, {
+          headers,
+          data: { attempts: 1, acknowledgeUnknown: true },
+        })
+      ).status(),
+    ).toBe(401)
+    await owner.page.getByRole("button", { name: "メンバー", exact: true }).first().click()
+    const row = owner.page.getByRole("group", { name: `招待 ${invite.email}`, exact: true })
+    await expect(row).toContainText("送信結果不明")
+    await row.getByRole("button", { name: "再試行", exact: true }).click()
+    const confirmation = owner.page.getByRole("alertdialog")
+    await expect(confirmation).toContainText("メールが重複")
+    await owner.page.setViewportSize({ width: 390, height: 844 })
+    expect(
+      await owner.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+    ).toBe(true)
+    expect(
+      await owner.page
+        .getByRole("dialog", { includeHidden: true })
+        .evaluate((element) => element.scrollWidth <= element.clientWidth),
+    ).toBe(true)
+    await owner.page.screenshot({
+      path: ".local/outbox-recovery-mobile.png",
+      animations: "disabled",
+    })
+    await confirmation.getByRole("button", { name: "戻る", exact: true }).click()
+    await owner.page.setViewportSize({ width: 1440, height: 900 })
+    expect((await mailbox(owner.page.request)).count).toBe(before.count)
+    await row.getByRole("button", { name: "再試行", exact: true }).click()
+    await owner.page.route(
+      "**/api/invitations/*/retry",
+      async (route) => {
+        const response = await route.fetch()
+        expect(response.status()).toBe(200)
+        await route.abort("failed")
+      },
+      { times: 1 },
+    )
+    await confirmation
+      .getByRole("button", { name: "旧リンクを無効にして再送", exact: true })
+      .click()
+    await expect(row).toContainText("送信受付済み · 2/3")
+    await expect(owner.page.getByRole("alert")).toContainText("操作結果を確認できません")
+    const recovered = await mailbox(owner.page.request)
+    expect(recovered.count - before.count).toBe(1)
+    expect(recovered.invitation === invite.token).toBe(false)
+    expect(
+      (
+        await outsider.page.request.post(`${origin}/api/auth/register/options`, {
+          headers,
+          data: { name: "Old Link", invitation: invite.token, bootstrap: null },
+        })
+      ).status(),
+    ).toBe(403)
+    expect((await retry(1, true)).status()).toBe(409)
+    setDeliveryFixture(invite.id, "failed", 2)
+    const concurrent = await Promise.all([retry(2), retry(2)])
+    expect(concurrent.map((response) => response.status()).sort()).toEqual([200, 409])
+    expect((await retry(3, true)).status()).toBe(409)
+    await owner.page.getByRole("button", { name: "再読み込み", exact: true }).click()
+    await expect(row).toContainText("送信受付済み · 3/3")
+    const last = await mailbox(owner.page.request)
+    expect(last.count - recovered.count).toBe(1)
+    await row.getByRole("button", { name: "取消", exact: true }).click()
+    await expect(row).toContainText("取消済み")
+    await expect(row.getByRole("button", { name: "再試行", exact: true })).toHaveCount(0)
+    expect((await retry(2, true)).status()).toBe(409)
+    expect(
+      (
+        await outsider.page.request.post(`${origin}/api/auth/register/options`, {
+          headers,
+          data: { name: "Cancelled Link", invitation: last.invitation, bootstrap: null },
+        })
+      ).status(),
+    ).toBe(403)
+    expect((await mailbox(owner.page.request)).count).toBe(last.count)
+  } finally {
+    await outsider.context.close()
     await owner.close()
   }
 })

@@ -1,37 +1,19 @@
 import type { Member } from "@/contexts/membership/domain/member"
 import type { InvitationRepository } from "@/contexts/membership/infrastructure/repositories/invitation.repository"
-import type { InvitationMailAdapter } from "@/contexts/membership/infrastructure/adapters/invitation-mail.adapter"
 import { InvitationFailed } from "@/contexts/membership/domain/invitation-failed"
 
-type Context = Readonly<{
-  invitations: Pick<InvitationRepository, "create" | "revokeUndelivered">
-  mail: Pick<InvitationMailAdapter, "send">
-}>
+type Context = Readonly<{ invitations: Pick<InvitationRepository, "create"> }>
 
-/** メンバーをメールで招待する。 */
+/** 招待と配信意図を同じ書込みで確定する。 */
 export class InviteMember {
   constructor(private readonly context: Context) {}
 
   async execute(
     actor: Member,
-    invitation: { id: string; hash: string; email: string; expiresAt: number; link: string },
+    invitation: { id: string; hash: string; email: string; expiresAt: number },
   ) {
     if (actor.status !== "active" || actor.role === "member")
       return new InvitationFailed("forbidden")
-
-    const created = await this.context.invitations.create({ ...invitation, invitedBy: actor.id })
-    if (created instanceof InvitationFailed) return created
-    if (!created.created) return created.invitation
-
-    const failure = await this.context.mail
-      .send(invitation.email, invitation.link)
-      .catch(() => new InvitationFailed("delivery"))
-
-    if (failure) {
-      await this.context.invitations.revokeUndelivered(invitation.id)
-      return new InvitationFailed("delivery")
-    }
-
-    return created.invitation
+    return this.context.invitations.create({ ...invitation, invitedBy: actor.id })
   }
 }

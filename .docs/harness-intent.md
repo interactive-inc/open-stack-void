@@ -37,3 +37,5 @@ Run 40388838777 identified the owner: HTTP.sys PID 4, Microsoft-IIS/10.0, with W
 The public-channel continuity increment is recorded in [[public-channel-lifecycle]]: reversible management, current-session checks at the room boundary, stable pagination and reconnect recovery. It does not settle private membership or retention policy.
 
 The bounded public search and small-file increment is recorded in [[search-attachments]]. Its room SQLite adapter and per-room budgets are provisional sample choices, not a core storage convention or a production cost guarantee. Private policy, retention, whole-workspace spending controls and an approved external-storage migration remain separate decisions.
+
+The invitation recovery increment is recorded in [[invitation-delivery-recovery]]: durable intent, bounded explicit attempts, unknown-outcome confirmation and old-link invalidation. It uses fake delivery in verification and creates no external resources or credentials. Production delivery guarantees, unattended recovery, private access policy and retention remain unconfirmed.

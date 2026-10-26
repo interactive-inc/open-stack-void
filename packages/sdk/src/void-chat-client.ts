@@ -227,6 +227,12 @@ export class VoidChatClient {
   revokeInvitation(id: string) {
     return this.request(`/invitations/${encodeURIComponent(id)}`, successSchema, "DELETE")
   }
+  retryInvitation(id: string, attempts: number, acknowledgeUnknown = false) {
+    return this.request(`/invitations/${encodeURIComponent(id)}/retry`, invitationSchema, "POST", {
+      attempts,
+      acknowledgeUnknown,
+    })
+  }
   tokens() {
     return this.request("/tokens", tokenSchema.array())
   }

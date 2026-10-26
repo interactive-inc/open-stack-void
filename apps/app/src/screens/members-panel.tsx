@@ -28,6 +28,13 @@ import { queryClient } from "@/client/query-client"
 import type { Member } from "@open-stack/sdk/contracts"
 
 type Props = { viewer: Member }
+const deliveryLabels = {
+  queued: "送信待ち",
+  sending: "送信中",
+  sent: "送信受付済み",
+  failed: "送信失敗",
+  unknown: "送信結果不明",
+}
 const invitationLabels = {
   pending: "招待中",
   expired: "期限切れ",
@@ -40,6 +47,7 @@ const invitationLabels = {
 export function MembersPanel(props: Props) {
   const email = useState("")
   const attempt = useState<{ email: string; id: string } | null>(null)
+  const recovery = useState<{ id: string; attempts: number } | null>(null)
   const removal = useState<Member | null>(null)
   const members = useQuery({ queryKey: ["members"], queryFn: () => chatClient.members() })
   const invitations = useQuery({
@@ -52,8 +60,14 @@ export function MembersPanel(props: Props) {
     mutationFn: (operation: () => Promise<unknown>) => operation(),
     onSuccess: async () => {
       removal[1](null)
+      recovery[1](null)
       await queryClient.invalidateQueries({ queryKey: ["members"] })
       await queryClient.invalidateQueries({ queryKey: ["invitations"] })
+    },
+    onError: async () => {
+      recovery[1](null)
+      await queryClient.invalidateQueries({ queryKey: ["invitations"] })
+      await queryClient.invalidateQueries({ queryKey: ["me"] })
     },
   })
   const invite = useMutation({
@@ -70,10 +84,10 @@ export function MembersPanel(props: Props) {
   })
 
   return (
-    <div className="grid gap-5">
+    <div className="grid min-w-0 gap-5">
       {props.viewer.role !== "member" && (
         <form
-          className="flex items-end gap-2"
+          className="flex min-w-0 items-end gap-2"
           onSubmit={(event) => {
             event.preventDefault()
             const normalized = email[0].trim().toLowerCase()
@@ -85,8 +99,8 @@ export function MembersPanel(props: Props) {
             invite.mutate(request)
           }}
         >
-          <FieldGroup className="flex-row items-end gap-2">
-            <Field className="flex-1 gap-2">
+          <FieldGroup className="min-w-0 flex-row items-end gap-2">
+            <Field className="min-w-0 flex-1 gap-2">
               <FieldLabel htmlFor="invite-email">メールで招待</FieldLabel>
               <Input
                 id="invite-email"
@@ -110,10 +124,12 @@ export function MembersPanel(props: Props) {
           <AlertDescription>
             {invite.error instanceof TypeError
               ? "送信結果を確認できません。一覧を確認し、同じ内容で再試行してください"
-              : (invite.error?.message ??
-                mutation.error?.message ??
-                members.error?.message ??
-                invitations.error?.message)}
+              : mutation.error instanceof TypeError
+                ? "操作結果を確認できません。一覧を再読み込みしてください"
+                : (invite.error?.message ??
+                  mutation.error?.message ??
+                  members.error?.message ??
+                  invitations.error?.message)}
             <Button
               type="button"
               variant="outline"
@@ -199,11 +215,14 @@ export function MembersPanel(props: Props) {
             key={invitation.id}
             role="group"
             aria-label={`招待 ${invitation.email}`}
-            className="flex items-center justify-between gap-2 text-sm"
+            className="flex min-w-0 items-center justify-between gap-2 text-sm"
           >
             <div className="min-w-0">
               <span className="block truncate text-muted-foreground">
                 {invitation.email} · {invitationLabels[invitation.status]}
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                {deliveryLabels[invitation.delivery.state]} · {invitation.delivery.attempts}/3
               </span>
               {!["revoked", "accepted"].includes(invitation.status) && (
                 <time
@@ -214,6 +233,25 @@ export function MembersPanel(props: Props) {
                 </time>
               )}
             </div>
+            {invitation.status === "pending" &&
+              invitation.delivery.attempts < 3 &&
+              ["queued", "failed", "unknown"].includes(invitation.delivery.state) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={mutation.isPending}
+                  onClick={() => {
+                    if (invitation.delivery.state === "unknown")
+                      recovery[1]({ id: invitation.id, attempts: invitation.delivery.attempts })
+                    else
+                      mutation.mutate(() =>
+                        chatClient.retryInvitation(invitation.id, invitation.delivery.attempts),
+                      )
+                  }}
+                >
+                  再試行
+                </Button>
+              )}
             {invitation.status === "revoked" ? (
               <Button
                 variant="ghost"
@@ -247,6 +285,36 @@ export function MembersPanel(props: Props) {
           </div>
         ),
       )}
+      <AlertDialog
+        open={recovery[0] !== null}
+        onOpenChange={(open) => {
+          if (!open) recovery[1](null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>結果不明の招待を再送しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              既に届いている可能性があるため、メールが重複することがあります。前のリンクを無効にして新しいリンクを送ります。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>戻る</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={mutation.isPending}
+              onClick={() => {
+                const request = recovery[0]
+                if (request)
+                  mutation.mutate(() =>
+                    chatClient.retryInvitation(request.id, request.attempts, true),
+                  )
+              }}
+            >
+              旧リンクを無効にして再送
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog
         open={removal[0] !== null}
         onOpenChange={(open) => {

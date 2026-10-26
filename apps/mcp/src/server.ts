@@ -265,7 +265,7 @@ server.registerTool(
   "invite_member",
   {
     description:
-      "Create an email invitation (admin). Reuse requestId after an uncertain response; cancel the old invitation before resending.",
+      "Record invitation delivery intent (admin), not proof of inbox delivery. Reuse requestId after an uncertain response; inspect delivery state and use explicit recovery.",
     inputSchema: z.object({ email: z.email(), requestId: z.uuid().optional() }),
     annotations: { destructiveHint: false },
   },
@@ -279,6 +279,21 @@ server.registerTool(
     annotations: { destructiveHint: true },
   },
   (input) => toolResponse(() => client.revokeInvitation(input.id)),
+)
+server.registerTool(
+  "retry_invitation",
+  {
+    description:
+      "Resume queued or failed invitation delivery (admin, maximum 3 attempts). For unknown outcome, acknowledgeUnknown must explicitly accept possible duplicate email and invalidation of the previous link. Read the current attempt count first; do not retry unknown automatically.",
+    inputSchema: z.object({
+      id: z.uuid(),
+      attempts: z.number().int().min(0).max(3),
+      acknowledgeUnknown: z.boolean(),
+    }),
+    annotations: { destructiveHint: true, idempotentHint: false },
+  },
+  (input) =>
+    toolResponse(() => client.retryInvitation(input.id, input.attempts, input.acknowledgeUnknown)),
 )
 server.registerTool(
   "list_tokens",

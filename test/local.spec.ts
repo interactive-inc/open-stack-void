@@ -1,3 +1,4 @@
+import { setDeliveryFixture } from "./invitation-delivery-fixture"
 import { packageBin } from "../scripts/package-bin.mjs"
 import { test, expect } from "@playwright/test"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
@@ -237,6 +238,32 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
     ])
     expect(printed.at(-1)).toMatchObject({ id: cliInvitation, status: "pending" })
   }
+  setDeliveryFixture(cliInvitation, "failed", 1)
+  await createCli({
+    readClipboard: async () => token,
+    print: (value) => printed.push(value),
+    openBrowser: () => {},
+  }).parseAsync([
+    "node",
+    "void-chat",
+    "--server",
+    "http://localhost:5183",
+    "--clipboard",
+    "invitations",
+    "retry",
+    cliInvitation,
+    "--attempts",
+    "1",
+  ])
+  expect(printed.at(-1)).toMatchObject({
+    id: cliInvitation,
+    delivery: { state: "sent", attempts: 2 },
+  })
+  expect(
+    (await (await page.request.get("/api/invitations", { headers: authorization })).json()).find(
+      (entry: { id: string }) => entry.id === cliInvitation,
+    ),
+  ).toMatchObject({ delivery: { state: "sent", attempts: 2 } })
   const mcp = new Client({ name: "local-test", version: "1.0.0" })
   const mcpEnvironment = Object.fromEntries(
     Object.entries({ ...process.env, VOID_CHAT_URL: "http://localhost:5183" }).filter(
@@ -429,6 +456,35 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
       (invitation: { id: string }) => invitation.id === mcpInvitation,
     ),
   ).toHaveLength(1)
+  setDeliveryFixture(mcpInvitation, "unknown", 1)
+  expect(
+    (
+      await mcp.callTool({
+        name: "retry_invitation",
+        arguments: { id: mcpInvitation, attempts: 1, acknowledgeUnknown: false },
+      })
+    ).isError,
+  ).toBe(true)
+  expect(
+    (
+      await mcp.callTool({
+        name: "retry_invitation",
+        arguments: { id: mcpInvitation, attempts: 1, acknowledgeUnknown: true },
+      })
+    ).isError,
+  ).not.toBe(true)
+  const deliveries = await mcp.callTool({ name: "list_invitations", arguments: {} })
+  expect(deliveries.isError).not.toBe(true)
+  expect(JSON.stringify(deliveries)).not.toContain('"hash"')
+  expect(JSON.stringify(deliveries)).not.toContain('"deliveryLease"')
+  expect(
+    (
+      await mcp.callTool({
+        name: "retry_invitation",
+        arguments: { id: mcpInvitation, attempts: 1, acknowledgeUnknown: true },
+      })
+    ).isError,
+  ).toBe(true)
   await mcp.close()
   await page.goto("/")
 

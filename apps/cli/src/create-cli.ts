@@ -189,6 +189,18 @@ export function createCli(props: Props) {
     .action(async (id) => props.print(await (await client()).restoreMember(id)))
 
   const invitations = command.command("invitations")
+  invitations
+    .command("retry <id>")
+    .requiredOption("--attempts <number>", "Current attempt count from invitations list", Number)
+    .option(
+      "--acknowledge-unknown",
+      "Invalidate the previous link and accept possible duplicate email",
+    )
+    .action(async (id: string, options: { attempts: number; acknowledgeUnknown?: boolean }) =>
+      props.print(
+        await (await client()).retryInvitation(id, options.attempts, options.acknowledgeUnknown),
+      ),
+    )
   invitations.command("list").action(async () => props.print(await (await client()).invitations()))
   invitations
     .command("create <email>")

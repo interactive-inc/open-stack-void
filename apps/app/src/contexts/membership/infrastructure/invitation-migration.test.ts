@@ -39,3 +39,38 @@ it("keeps legacy invitations and blocks closed links for legacy expiry-only read
     database.close()
   }
 })
+
+it("preserves legacy invitation validity and marks unobserved delivery unknown without a database rebuild", () => {
+  const directory = new URL("../../../../db/migrations/", import.meta.url)
+  const migration = "20261026231107_superb_boomer.sql"
+  const database = new DatabaseSync(":memory:")
+  try {
+    database.exec("PRAGMA foreign_keys = ON")
+    for (const file of readdirSync(directory)
+      .filter((file) => file.endsWith(".sql") && file < migration)
+      .sort())
+      database.exec(readFileSync(new URL(file, directory), "utf8"))
+    database.exec(
+      "INSERT INTO chat_members (id,email,name,role,status,created_at) VALUES ('legacy-owner','legacy@example.com','Legacy','owner','active',0)",
+    )
+    database.exec(
+      "INSERT INTO chat_invitations (id,hash,email,invited_by,expires_at,created_at) VALUES ('legacy-invite','synthetic-legacy-hash','guest@example.com','legacy-owner',99999999999999,0)",
+    )
+    const before = database
+      .prepare("SELECT id,hash,email,state,expires_at FROM chat_invitations")
+      .get()
+    const sql = readFileSync(new URL(migration, directory), "utf8")
+    expect(sql).not.toMatch(/DROP|DELETE|CREATE TABLE/i)
+    database.exec(sql)
+    expect(
+      database.prepare("SELECT id,hash,email,state,expires_at FROM chat_invitations").get(),
+    ).toEqual(before)
+    expect(
+      database
+        .prepare("SELECT delivery_state,delivery_attempts,delivery_lease FROM chat_invitations")
+        .get(),
+    ).toMatchObject({ delivery_state: "unknown", delivery_attempts: 0, delivery_lease: null })
+  } finally {
+    database.close()
+  }
+})

@@ -1,23 +1,38 @@
 import { sendEmail } from "void/email"
+import type { InvitationDeliveryOutcome } from "@/contexts/membership/domain/invitation-delivery"
+
+const rejectedCodes = new Set([
+  "BINDING_MISSING",
+  "INVALID_FROM",
+  "INVALID_TO",
+  "UNVERIFIED_DESTINATION",
+  "MIME_ERROR",
+  "QUOTA_EXCEEDED",
+  "IDEMPOTENCY_CONFLICT",
+  "UPSTREAM_ERROR",
+])
 
 export class InvitationMailAdapter {
-  async send(email: string, link: string) {
+  // The current native Cloudflare binding cannot deduplicate. Enable only for a
+  // separately verified Void Platform integration, never as an automatic fallback.
+  constructor(private readonly supportsIdempotency = false) {}
+
+  async send(email: string, link: string, key: string): Promise<InvitationDeliveryOutcome> {
     const delivery = await sendEmail({
       to: email,
       subject: "Void Chat への招待",
       text: `Void Chat に招待されました。次のリンクからパスキーを登録してください。招待は7日間有効です。\n\n${link}`,
+      ...(this.supportsIdempotency ? { idempotencyKey: key } : {}),
     })
 
     if (!delivery.ok) {
-      console.warn(
-        "Invitation email rejected",
+      const codes =
         "error" in delivery
-          ? delivery.error.code
-          : delivery.deliveries.filter((item) => !item.ok).map((item) => item.error.code),
-      )
-      return new Error("メールを送信できませんでした。送信設定を確認してください")
+          ? [delivery.error.code]
+          : delivery.deliveries.filter((item) => !item.ok).map((item) => item.error.code)
+      return codes.length && codes.every((code) => rejectedCodes.has(code)) ? "failed" : "unknown"
     }
 
-    return null
+    return "sent"
   }
 }
