@@ -27,7 +27,7 @@ vp run dev
 
 `vp run dev` は Portless でアプリと公開サイトを同時起動します。HTTP の80番ポートを使用し、プロキシはループバックに限定します。証明書の信頼登録・hosts・ファイアウォールは変更しません。80番が使用中なら既存プロセスを停止せず、競合を解消してから起動してください。
 
-[公開サイト](http://void.stack.localhost/) / [EmDash 管理画面](http://void.stack.localhost/_emdash/admin)。CMS の編集者はアプリのアカウントと別管理です。通常サーバーの起動後、別ターミナルで `vp run seed:site` を実行してください。トップ・概要・導入記事が EmDash の正規データとして取り込まれます。`/about` は Pages の about、トップは Pages の home、記事一覧と詳細は Posts を表示します。
+[公開サイト](http://void.stack.localhost/) / [EmDash 管理画面](http://void.stack.localhost/_emdash/admin)。CMS の編集者はアプリのアカウントと別管理です。通常サーバーの起動後、別ターミナルで `vp run seed:site` を実行してください。トップ・概要・9ページの使い方・3件の導入記事が EmDash の正規データとして取り込まれます。`/about` は Pages の about、トップは Pages の home、記事一覧と詳細は Posts を表示します。
 
 seed はローカルの `127.0.0.1:4321` のみに接続します。同じ slug の既存データは、下書き・非公開・ゴミ箱を含め上書きせず、メニュー・ウィジェット・既存設定も置き換えません。管理者・パスキー・トークンは作成しません。旧スターターの未セットアップ環境（ユーザーなし・既定のタイトルと説明のみ）は名称を Open Stack Void に移行します。
 

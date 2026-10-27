@@ -1,7 +1,10 @@
 import { queryClient } from "@/client/query-client"
 import { synchronizeMessages } from "@/client/synchronize-messages"
 
-export function subscribeChannel(channelId: string) {
+export function subscribeChannel(
+  channelId: string,
+  onStatus: (status: "connecting" | "connected" | "retrying") => void = () => undefined,
+) {
   const connection: {
     socket: WebSocket | null
     isClosed: boolean
@@ -31,6 +34,7 @@ export function subscribeChannel(channelId: string) {
         socket.close()
         return
       }
+      onStatus("connected")
       connection.attempt = 0
       void synchronizeMessages(channelId).catch(() => undefined)
       void queryClient.invalidateQueries({ queryKey: ["channels"] })
@@ -44,6 +48,7 @@ export function subscribeChannel(channelId: string) {
         void queryClient.invalidateQueries({ queryKey: ["me"] })
         return
       }
+      onStatus("retrying")
       if (!connection.isClosed)
         connection.timeout = window.setTimeout(
           open,

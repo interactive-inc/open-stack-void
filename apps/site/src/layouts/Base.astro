@@ -19,7 +19,7 @@ const settings = await getSiteSettingsWithCacheHint()
 const menu = await getMenuWithCacheHint('primary')
 const siteTitle = settings.data?.title || 'Open Stack Void'
 const description = props.description || settings.data?.tagline || ''
-const appUrl = import.meta.env.PUBLIC_APP_URL || (import.meta.env.DEV ? 'http://app.void.stack.localhost' : 'https://app.stack.inta.site')
+const appUrl = import.meta.env.PUBLIC_APP_URL || (import.meta.env.DEV ? 'http://app.void.stack.localhost' : 'https://app.stack.open.inta.site')
 const pageContext = createPublicPageContext({ Astro, kind: props.content ? 'content' : 'custom', pageType: 'website', title: props.title, pageTitle: props.pageTitle || props.title, description, canonical: props.canonical, image: props.image, content: props.content, siteName: siteTitle })
 
 if (Astro.cache?.enabled) {
@@ -37,16 +37,16 @@ if (Astro.cache?.enabled) {
   </head>
   <body class="min-h-dvh bg-background text-foreground antialiased">
     <EmDashBodyStart page={pageContext} />
-    <header class="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-6">
+    <header class="mx-auto flex min-h-16 max-w-5xl flex-col items-start justify-between gap-3 px-6 py-4 sm:flex-row sm:items-center">
       <a href="/" class="font-semibold tracking-tight">{siteTitle}<span class="text-muted-foreground">.</span></a>
-      <nav class="flex items-center gap-1" aria-label="ナビゲーション">
+      <nav class="flex flex-wrap items-center gap-1" aria-label="ナビゲーション">
         {menu.data?.items.filter(item => item.url !== '/').map(item => <a href={item.url} class={buttonVariants({ variant: 'ghost', size: 'sm' })}>{item.label}</a>)}
-        <a href={appUrl} class={buttonVariants({ size: 'sm' })}>サンプルを開く ↗</a>
+        <a href={appUrl} class={buttonVariants({ size: 'sm' })}>会話を開く ↗</a>
       </nav>
     </header>
     <main class="content mx-auto max-w-5xl px-6 py-12 sm:py-20"><slot /></main>
     <footer class="mx-auto flex max-w-5xl justify-between gap-4 border-t border-border px-6 py-5 text-xs text-muted-foreground">
-      <a href="/about" class="hover:underline">Open Stack Void について</a>
+      <a href="/guide" class="hover:underline">使い方</a><a href="/about" class="hover:underline">Open Stack Void について</a>
       <a href="https://github.com/interactive-inc/open-stack-void" class="hover:underline">GitHub ↗</a>
     </footer>
     <EmDashBodyEnd page={pageContext} />
@@ -56,7 +56,10 @@ if (Astro.cache?.enabled) {
   .content h1 { font-size: clamp(2rem, 5vw, 3.75rem); line-height: 1.15; font-weight: 600; letter-spacing: -.04em; margin-block-end: 1.5rem; }
   .content h2 { font-size: 1.25rem; line-height: 1.4; font-weight: 500; margin-block: 1.5rem .5rem; }
   .content p { max-width: 42rem; line-height: 1.9; margin-block: .75rem; }
-  .content ul { display: grid; gap: 1.5rem; }
+  .content ul { display: grid; gap: 1.25rem; }
+  .content ol { list-style: decimal; padding-inline-start: 1.5rem; }
+  .content article { max-width: 46rem; }
+  .content article a { text-decoration: underline; }
   .content a:not([data-slot]) { text-underline-offset: 4px; }
   .content time { font-size: .75rem; color: var(--muted-foreground); }
   .content img { max-width: 100%; height: auto; border-radius: var(--radius); }

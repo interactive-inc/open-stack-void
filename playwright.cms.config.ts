@@ -15,26 +15,26 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "vp run app:dev",
-      url: "http://127.0.0.1:5173/api/health",
+      command: "vp -C apps/app dev --host 127.0.0.1 --port 5184 --strictPort",
+      url: "http://localhost:5184/api/health",
       reuseExistingServer: false,
       timeout: 90000,
       env: {
         CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false",
         VOID_CHAT_TEST_STATE: `../../.local/cms-app-e2e-${Date.now()}`,
-        APP_ORIGIN: "http://app.void.stack.localhost",
+        APP_ORIGIN: "http://localhost:5184",
         BOOTSTRAP_TOKEN: "cms-e2e-only-key",
         ADMIN_EMAIL: "cms-test@example.com",
       },
     },
     {
-      command: "vp -C apps/site exec astro dev --host 127.0.0.1 --port 4322",
+      command: "vp -C apps/site exec astro dev --host 127.0.0.1 --port 4322 --ignore-lock",
       url: "http://localhost:4322",
       reuseExistingServer: false,
       timeout: 90_000,
       env: {
         VOID_SITE_TEST_STATE: `../../.local/cms-e2e-${Date.now()}`,
-        PUBLIC_APP_URL: "http://app.void.stack.localhost",
+        PUBLIC_APP_URL: "http://localhost:5184",
       },
     },
   ],

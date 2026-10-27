@@ -16,7 +16,8 @@ export default defineConfig({
     { name: "security", testMatch: "authorization.spec.ts", dependencies: ["journeys"] },
     { name: "invitations", testMatch: "invitations.spec.ts", dependencies: ["security"] },
     { name: "channels", testMatch: "channels.spec.ts", dependencies: ["invitations"] },
-    { name: "content", testMatch: "content.spec.ts", dependencies: ["channels"] },
+    { name: "message-changes", testMatch: "message-changes.spec.ts", dependencies: ["channels"] },
+    { name: "content", testMatch: "content.spec.ts", dependencies: ["message-changes"] },
     { name: "bootstrap", testMatch: "bootstrap.spec.ts", dependencies: ["content"] },
   ],
   use: {
@@ -42,7 +43,7 @@ export default defineConfig({
       timeout: 90_000,
     },
     {
-      command: "vp -C apps/site exec astro dev --host 127.0.0.1 --port 4322",
+      command: "vp -C apps/site exec astro dev --host 127.0.0.1 --port 4322 --ignore-lock",
       url: "http://localhost:4322",
       env: {
         VOID_SITE_TEST_STATE: `${state}/site`,

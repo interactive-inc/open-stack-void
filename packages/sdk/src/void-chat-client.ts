@@ -198,6 +198,22 @@ export class VoidChatClient {
     }
     return new Blob(chunks, { type: "application/octet-stream" })
   }
+  editMessage(channelId: string, id: string, text: string, revision: number) {
+    return this.request(
+      `/channels/${encodeURIComponent(channelId)}/messages/${encodeURIComponent(id)}`,
+      messageSchema,
+      "PATCH",
+      { text, revision },
+    )
+  }
+  deleteMessage(channelId: string, id: string, revision: number) {
+    return this.request(
+      `/channels/${encodeURIComponent(channelId)}/messages/${encodeURIComponent(id)}`,
+      messageSchema,
+      "DELETE",
+      { revision },
+    )
+  }
   sendMessage(channelId: string, text: string, id: string = crypto.randomUUID()) {
     return this.request(
       `/channels/${encodeURIComponent(channelId)}/messages`,

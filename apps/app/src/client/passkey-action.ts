@@ -4,6 +4,7 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
 } from "@simplewebauthn/browser"
 import { z } from "zod"
+import { authenticationError } from "@/client/authentication-error"
 
 export async function passkeyAction(
   action: "login" | "register" | "reauth",
@@ -41,6 +42,8 @@ export async function passkeyAction(
                   .safeParse(value).success,
             )
             .parse(options),
+        }).catch((error: unknown) => {
+          throw authenticationError(error)
         })
       : await startAuthentication({
           optionsJSON: z
@@ -48,6 +51,8 @@ export async function passkeyAction(
               (value) => z.object({ challenge: z.string() }).safeParse(value).success,
             )
             .parse(options),
+        }).catch((error: unknown) => {
+          throw authenticationError(error)
         })
   const verificationResponse = await fetch(`/api/auth/${action}/verify`, {
     method: "POST",

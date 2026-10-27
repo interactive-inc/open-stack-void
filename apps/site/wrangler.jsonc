@@ -1,6 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "void-chat-site",
+  "account_id": "9acefc4e7cfd25ff42cf1213f469f775",
+  "workers_dev": false,
+  "routes": [{ "pattern": "stack.open.inta.site", "custom_domain": true }],
+  "vars": { "EMDASH_SETUP_LOCKED": "true" },
+  "kv_namespaces": [{ "binding": "SESSION", "id": "763c5f0f6f5741ae96dcbeff1dc4d60c" }],
   "main": "./src/worker.ts",
   "compatibility_date": "2026-02-24",
   "compatibility_flags": ["nodejs_compat"],
@@ -8,6 +13,7 @@
     {
       "binding": "DB",
       "database_name": "open-stack-void-site",
+      "database_id": "115150e7-a731-420b-a475-9793cb212d1f",
     },
   ],
   "r2_buckets": [

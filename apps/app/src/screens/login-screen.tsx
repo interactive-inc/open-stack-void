@@ -18,13 +18,16 @@ export function LoginScreen() {
     queryFn: async () => {
       const response = await fetch("/api/auth/status")
       if (!response.ok) throw new Error("ログイン状態を確認できません")
-      return z.object({ canBootstrap: z.boolean() }).parse(await response.json())
+      return z
+        .object({ canBootstrap: z.boolean(), needsSetup: z.boolean().default(false) })
+        .parse(await response.json())
     },
   })
   const detectRegistration = useState(() => () => {
     registration[1](Boolean(new URLSearchParams(location.hash.slice(1)).get("invite")))
   })
   const canRegister = registration[0] || status.data?.canBootstrap === true
+  const setupUnavailable = status.data?.needsSetup && !canRegister
   const login = useMutation({
     mutationFn: () =>
       passkeyAction(canRegister ? "register" : "login", name[0], initializationKey[0] || null),
@@ -79,7 +82,19 @@ export function LoginScreen() {
             </Field>
           )}
         </FieldGroup>
-        <Button type="submit" disabled={login.isPending || status.isPending || status.isError}>
+        {setupUnavailable && (
+          <Alert>
+            <AlertDescription>
+              管理者の初回設定が必要です。設置した担当者に初回登録の設定を依頼してください。
+            </AlertDescription>
+          </Alert>
+        )}
+        <Button
+          type="submit"
+          disabled={
+            login.isPending || status.isPending || status.isError || Boolean(setupUnavailable)
+          }
+        >
           {login.isPending ? "確認中…" : canRegister ? "パスキーを登録" : "パスキーでログイン"}
         </Button>
         {(login.error || status.error) && (
@@ -104,6 +119,16 @@ export function LoginScreen() {
             </AlertDescription>
           </Alert>
         )}
+        <a
+          className="text-center text-sm text-muted-foreground underline underline-offset-4"
+          href={
+            import.meta.env.DEV
+              ? "http://void.stack.localhost/getting-started"
+              : "https://stack.open.inta.site/getting-started"
+          }
+        >
+          初めて使う方・ログインできない方へ
+        </a>
       </form>
     </main>
   )

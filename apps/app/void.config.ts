@@ -2,7 +2,20 @@
 import { defineConfig } from "void/config"
 
 export default defineConfig({
-  cloudflare: { d1_databases: [{ binding: "DB", database_name: "open-stack-void" }] },
+  cloudflare: {
+    name: "open-stack-void",
+    account_id: "9acefc4e7cfd25ff42cf1213f469f775",
+    workers_dev: false,
+    preview_urls: false,
+    d1_databases: [
+      {
+        binding: "DB",
+        database_name: "open-stack-void-db",
+        database_id: "524aa3de-d596-4485-9f8a-b1f87290283e",
+      },
+    ],
+    routes: [{ pattern: "app.stack.open.inta.site", custom_domain: true }],
+  },
   email: { from: "Void Chat <noreply@example.com>" },
   worker: {
     compatibility_date: "2026-02-24",

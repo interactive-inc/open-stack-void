@@ -7,11 +7,15 @@ import { buttonVariants } from '@/components/ui/button'
 const settings = await getSiteSettings()
 const home = await getEmDashEntry('pages', 'home')
 const posts = await getEmDashCollection('posts', { orderBy: { published_at: 'desc' }, limit: 5 })
-const appUrl = import.meta.env.PUBLIC_APP_URL || (import.meta.env.DEV ? 'http://app.void.stack.localhost' : 'https://app.stack.inta.site')
+const pages = await getEmDashCollection('pages', { limit: 100 })
+const guidePaths = ['getting-started', 'using-chat', 'channels', 'inviting-members', 'account-security', 'troubleshooting']
+const guides = guidePaths.flatMap(slug => pages.entries.filter(page => page.id === slug))
+const appUrl = import.meta.env.PUBLIC_APP_URL || (import.meta.env.DEV ? 'http://app.void.stack.localhost' : 'https://app.stack.open.inta.site')
 
 if (Astro.cache?.enabled) {
   Astro.cache.set(home.cacheHint)
   Astro.cache.set(posts.cacheHint)
+  Astro.cache.set(pages.cacheHint)
 }
 ---
 <Base title={settings?.title || 'Open Stack Void'}>
@@ -20,7 +24,8 @@ if (Astro.cache?.enabled) {
       <h1 {...home.entry?.edit.title}>{home.entry?.data.title || settings?.tagline || 'つくるための、土台。'}</h1>
       {home.entry?.data.content && <div {...home.entry.edit.content}><PortableText value={home.entry.data.content} /></div>}
     </div>
-    <div><a href={appUrl} class={buttonVariants()}>サンプルを開く ↗</a></div>
+    <div><a href={appUrl} class={buttonVariants()}>会話を開く ↗</a></div>
   </section>
-  {posts.entries.length > 0 && <section class="mt-20 border-t border-border pt-6" aria-label="更新情報"><ul>{posts.entries.map(post => <li class="flex flex-wrap items-baseline justify-between gap-3"><a href={`/posts/${post.id}`} class="text-sm hover:underline" {...post.edit.title}>{post.data.title}</a>{post.data.publishedAt && <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString('ja-JP')}</time>}</li>)}</ul></section>}
+  {guides.length > 0 && <section class="mt-16 border-t border-border pt-6" aria-label="使い方"><h2>使い方</h2><ul class="sm:grid-cols-2">{guides.map(page => <li><a href={`/${page.id}`} class="underline" {...page.edit.title}>{page.data.title}</a></li>)}</ul><p><a href="/guide" class="underline">使い方の一覧へ →</a></p></section>}
+  {posts.entries.length > 0 && <section class="mt-20 border-t border-border pt-6" aria-label="開発と導入"><h2>開発と導入</h2><ul>{posts.entries.map(post => <li class="flex flex-wrap items-baseline justify-between gap-3"><a href={`/posts/${post.id}`} class="text-sm hover:underline" {...post.edit.title}>{post.data.title}</a>{post.data.publishedAt && <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString('ja-JP')}</time>}</li>)}</ul></section>}
 </Base>

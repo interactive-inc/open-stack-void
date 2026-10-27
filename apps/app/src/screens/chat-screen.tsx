@@ -28,6 +28,7 @@ type Props = { viewer: Member }
 
 /** チャンネルと会話に画面を集中させる。 */
 export function ChatScreen(props: Props) {
+  const drafts = useState<Record<string, string>>({})
   const selectedChannel = useState("general")
   const panel = useState<"members" | "account" | "channel" | "channel-settings" | "search" | null>(
     null,
@@ -83,6 +84,7 @@ export function ChatScreen(props: Props) {
               key={channel.id}
               variant={selectedChannel[0] === channel.id ? "secondary" : "ghost"}
               className="justify-start gap-2 rounded-lg"
+              aria-current={selectedChannel[0] === channel.id ? "page" : undefined}
               onClick={() => selectedChannel[1](channel.id)}
             >
               <span className="text-muted-foreground">#</span>
@@ -185,7 +187,15 @@ export function ChatScreen(props: Props) {
             <AlertDescription>{channels.error.message}</AlertDescription>
           </Alert>
         )}
-        {channel && <Conversation key={channel.id} channel={channel} />}
+        {channel && (
+          <Conversation
+            key={channel.id}
+            channel={channel}
+            viewerId={props.viewer.id}
+            draft={drafts[0][channel.id] ?? ""}
+            onDraftChange={(text) => drafts[1]((current) => ({ ...current, [channel.id]: text }))}
+          />
+        )}
       </div>
       <Dialog
         open={panel[0] !== null}

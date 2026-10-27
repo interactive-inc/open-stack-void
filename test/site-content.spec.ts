@@ -2,7 +2,13 @@ import { packageBin } from "../scripts/package-bin.mjs"
 import { test, expect } from "@playwright/test"
 import { execFileSync } from "node:child_process"
 import { resolve } from "node:path"
-import { writeFileSync } from "node:fs"
+import { writeFileSync, readFileSync } from "node:fs"
+
+const sample = JSON.parse(readFileSync("apps/site/seed/seed.json", "utf8"))
+const contentCount = Object.values(sample.content).reduce<number>(
+  (total, entries) => total + (Array.isArray(entries) ? entries.length : 0),
+  0,
+)
 
 const site = "http://localhost:4322"
 const api = "http://127.0.0.1:4322"
@@ -46,8 +52,8 @@ test("EmDash seed preserves edits and public content follows the publishing life
     ).status(),
   ).toBe(403)
   expect((await page.goto(`${site}/about`))?.status()).toBe(404)
-  expect(seed().content).toMatchObject({ created: 5, updated: 0 })
-  expect(seed().content).toMatchObject({ created: 0, skipped: 5, updated: 0 })
+  expect(seed().content).toMatchObject({ created: contentCount, updated: 0 })
+  expect(seed().content).toMatchObject({ created: 0, skipped: contentCount, updated: 0 })
   expect((await page.goto(`${site}/about`))?.status()).toBe(200)
   await expect(page.getByRole("heading", { name: "Open Stack Void について" })).toBeVisible()
   await expect(page.getByText(/ボイラープレートです/)).toBeVisible()
@@ -61,7 +67,7 @@ test("EmDash seed preserves edits and public content follows the publishing life
     "--data",
     JSON.stringify({ title: "CMS で編集した概要" }),
   )
-  expect(seed().content).toMatchObject({ created: 0, updated: 0, skipped: 5 })
+  expect(seed().content).toMatchObject({ created: 0, updated: 0, skipped: contentCount })
   await page.reload()
   await expect(page.getByRole("heading", { name: "CMS で編集した概要" })).toBeVisible()
   const home = cms("get", "pages", "home", "--raw")
@@ -163,10 +169,12 @@ test("EmDash seed preserves edits and public content follows the publishing life
     for (const link of links) {
       expect(link.href).not.toMatch(/localhost:(5173|4321)/)
       if (link.href.startsWith("https://github.com/")) {
-        expect(link.href).toBe("https://github.com/interactive-inc/open-stack-void")
+        expect(link.href).toMatch(
+          /^https:\/\/github\.com\/interactive-inc\/open-stack-void(?:\/|$)/,
+        )
         continue
       }
-      if (!link.href.startsWith(site + "/") && link.href !== "http://app.void.stack.localhost/")
+      if (!link.href.startsWith(site + "/") && link.href !== "http://localhost:5184/")
         throw new Error(`Unexpected link: ${link.href}`)
       await page.goto(source)
       const anchor = page.getByRole("link", { name: link.text, exact: true }).first()
@@ -176,11 +184,23 @@ test("EmDash seed preserves edits and public content follows the publishing life
       await anchor.click()
       const response = await navigation
       expect(response.status()).toBe(200)
-      expect(page.url()).toBe(link.href)
+      await expect(page).toHaveURL(link.href)
       report.push({ source, target: link.href, status: response.status() })
       if (link.href.startsWith(site + "/") && !visited.has(link.href)) pending.push(link.href)
     }
   }
+  for (const guide of [
+    "guide",
+    "getting-started",
+    "using-chat",
+    "channels",
+    "inviting-members",
+    "account-security",
+    "troubleshooting",
+    "command-line",
+    "assistant-connection",
+  ])
+    expect(visited).toContain(`${site}/${guide}`)
   expect(visited).toContain(site + "/about")
   expect(visited).toContain(site + "/posts/welcome")
   expect(visited).toContain(site + "/category/general")

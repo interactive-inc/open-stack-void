@@ -2,10 +2,7 @@ import { useState } from "react"
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Message, MessageAvatar, MessageContent, MessageHeader } from "@/components/ui/message"
-import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import {
   MessageScrollerProvider,
   MessageScroller,
@@ -19,19 +16,25 @@ import { Field, FieldGroup } from "@/components/ui/field"
 import { chatClient } from "@/client/chat-client"
 import { queryClient } from "@/client/query-client"
 import { subscribeChannel } from "@/client/subscribe-channel"
-import { MessageAttachments } from "@/screens/message-attachments"
+import { ConversationMessage } from "@/screens/conversation-message"
+import { Skeleton } from "@/components/ui/skeleton"
 import { AttachmentComposer } from "@/screens/attachment-composer"
 import { synchronizeMessages, mergeMessages } from "@/client/synchronize-messages"
 import type { Message as ChatMessage } from "@open-stack/sdk/contracts"
 import type { Channel } from "@open-stack/sdk/contracts"
 
-type Props = { channel: Channel }
+type Props = {
+  channel: Channel
+  viewerId: string
+  draft: string
+  onDraftChange: (text: string) => void
+}
 
 /** チャンネルの会話を表示して送信する。 */
 export function Conversation(props: Props) {
-  const draft = useState("")
+  const connection = useState<"connecting" | "connected" | "retrying">("connecting")
   const pendingId = useState<string | null>(null)
-  const subscription = useState(() => () => subscribeChannel(props.channel.id))
+  const subscription = useState(() => () => subscribeChannel(props.channel.id, connection[1]))
   const hasOlder = useState(true)
   const messages = useQuery({
     queryKey: ["messages", props.channel.id],
@@ -66,7 +69,7 @@ export function Conversation(props: Props) {
     mutationFn: (submission: { text: string; id: string }) =>
       chatClient.sendMessage(props.channel.id, submission.text, submission.id),
     onSuccess: async () => {
-      draft[1]("")
+      props.onDraftChange("")
       pendingId[1](null)
       await synchronizeMessages(props.channel.id)
     },
@@ -79,6 +82,11 @@ export function Conversation(props: Props) {
       ref={subscription[0]}
       aria-label={`#${props.channel.name}`}
     >
+      {connection[0] !== "connected" && (
+        <p role="status" className="px-4 py-1 text-xs text-muted-foreground">
+          {connection[0] === "retrying" ? "再接続しています…" : "接続を確認しています…"}
+        </p>
+      )}
       <div className="min-h-0 flex-1">
         <MessageScrollerProvider autoScroll>
           <MessageScroller>
@@ -89,6 +97,11 @@ export function Conversation(props: Props) {
                 aria-live="polite"
                 aria-relevant="additions"
               >
+                {messages.isPending && (
+                  <MessageScrollerItem messageId="loading">
+                    <Skeleton className="h-12 w-full" aria-label="投稿を読み込み中" />
+                  </MessageScrollerItem>
+                )}
                 {hasOlder[0] && (messages.data?.length ?? 0) >= 100 && (
                   <MessageScrollerItem messageId="older-messages">
                     <Button
@@ -105,35 +118,11 @@ export function Conversation(props: Props) {
                 )}
                 {messages.data?.map((message) => (
                   <MessageScrollerItem key={message.id} messageId={message.id}>
-                    <Message>
-                      <MessageAvatar className="self-start">
-                        <Avatar size="sm">
-                          <AvatarFallback>{message.memberName.slice(0, 1)}</AvatarFallback>
-                        </Avatar>
-                      </MessageAvatar>
-                      <MessageContent className="gap-1">
-                        <MessageHeader className="gap-2">
-                          <span>{message.memberName}</span>
-                          <time dateTime={new Date(message.createdAt).toISOString()}>
-                            {new Date(message.createdAt).toLocaleTimeString("ja-JP", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </time>
-                        </MessageHeader>
-                        {message.attachments.length === 0 && (
-                          <Bubble variant="ghost">
-                            <BubbleContent className="whitespace-pre-wrap">
-                              {message.text}
-                            </BubbleContent>
-                          </Bubble>
-                        )}
-                        <MessageAttachments
-                          channelId={props.channel.id}
-                          attachments={message.attachments}
-                        />
-                      </MessageContent>
-                    </Message>
+                    <ConversationMessage
+                      message={message}
+                      viewerId={props.viewerId}
+                      archived={props.channel.archived}
+                    />
                   </MessageScrollerItem>
                 ))}
                 {messages.data?.length === 0 && (
@@ -153,10 +142,10 @@ export function Conversation(props: Props) {
         className="flex flex-col gap-2 px-4 py-3 sm:px-6"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!draft[0].trim() || send.isPending || props.channel.archived) return
+          if (!props.draft.trim() || send.isPending || props.channel.archived) return
           const id = pendingId[0] ?? crypto.randomUUID()
           pendingId[1](id)
-          send.mutate({ text: draft[0], id })
+          send.mutate({ text: props.draft, id })
         }}
       >
         {(send.error || messages.error || older.error) && (
@@ -175,10 +164,10 @@ export function Conversation(props: Props) {
               className="min-h-12 resize-none rounded-2xl"
               rows={1}
               maxLength={4000}
-              value={draft[0]}
+              value={props.draft}
               disabled={send.isPending || props.channel.archived}
               onChange={(event) => {
-                draft[1](event.target.value)
+                props.onDraftChange(event.target.value)
                 pendingId[1](null)
               }}
               onKeyDown={(event) => {
@@ -193,7 +182,7 @@ export function Conversation(props: Props) {
               size="icon"
               aria-label="送信"
               title="送信"
-              disabled={send.isPending || props.channel.archived || !draft[0].trim()}
+              disabled={send.isPending || props.channel.archived || !props.draft.trim()}
             >
               ↑
             </Button>

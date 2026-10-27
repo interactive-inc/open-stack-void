@@ -109,18 +109,18 @@
       "items": [
         {
           "type": "custom",
-          "label": "Home",
-          "url": "/"
+          "label": "使い方",
+          "url": "/guide"
         },
         {
           "type": "custom",
-          "label": "更新",
+          "label": "困ったとき",
+          "url": "/troubleshooting"
+        },
+        {
+          "type": "custom",
+          "label": "開発",
           "url": "/posts"
-        },
-        {
-          "type": "custom",
-          "label": "概要",
-          "url": "/about"
         }
       ]
     }
@@ -159,89 +159,93 @@
         "slug": "home",
         "status": "published",
         "data": {
-          "title": "つくるための、土台。",
+          "title": "Void Chat を、チームで使い始める。",
           "content": [
             {
               "_type": "block",
-              "_key": "base-1",
+              "_key": "guide-block-124",
               "style": "normal",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-1",
-                  "text": "Open Stack Void は、フルスタック開発のためのオープンソースのボイラープレートです。"
+                  "_key": "guide-span-124",
+                  "text": "話題ごとの部屋で会話し、必要な投稿をあとから探す。仲間の招待から端末の本人確認まで、一つの会話アプリで扱えます。",
+                  "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "base-2",
+              "_key": "guide-block-125",
               "style": "normal",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-2",
-                  "text": "Web・CLI・MCP、パスキー認証、メンバー管理、CMS を組み合わせた構成を、同梱サンプルの Void Chat で確かめられます。"
+                  "_key": "guide-span-125",
+                  "text": "Open Stack Void に同梱された Void Chat の、利用者向けの案内です。初めて使う方は登録の手順から、すでに参加している方は基本操作からご覧ください。",
+                  "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "link-3",
+              "_key": "guide-block-126",
               "style": "normal",
               "markDefs": [
                 {
                   "_type": "link",
-                  "_key": "url-3",
-                  "href": "/about"
+                  "_key": "guide-link-126",
+                  "href": "/getting-started"
                 }
               ],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-3",
-                  "text": "構成とサンプルについて",
-                  "marks": ["url-3"]
+                  "_key": "guide-span-126",
+                  "text": "初めて使う・参加する",
+                  "marks": ["guide-link-126"]
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "link-4",
+              "_key": "guide-block-127",
               "style": "normal",
               "markDefs": [
                 {
                   "_type": "link",
-                  "_key": "url-4",
-                  "href": "/posts"
+                  "_key": "guide-link-127",
+                  "href": "/using-chat"
                 }
               ],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-4",
-                  "text": "導入・開発の記事",
-                  "marks": ["url-4"]
+                  "_key": "guide-span-127",
+                  "text": "会話する・検索する",
+                  "marks": ["guide-link-127"]
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "link-5",
+              "_key": "guide-block-128",
               "style": "normal",
               "markDefs": [
                 {
                   "_type": "link",
-                  "_key": "url-5",
-                  "href": "https://github.com/interactive-inc/open-stack-void"
+                  "_key": "guide-link-128",
+                  "href": "/guide"
                 }
               ],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-5",
-                  "text": "GitHub でソースを見る",
-                  "marks": ["url-5"]
+                  "_key": "guide-span-128",
+                  "text": "すべての使い方を見る",
+                  "marks": ["guide-link-128"]
                 }
               ]
             }
@@ -380,6 +384,2038 @@
                   "_key": "span-13",
                   "text": "GitHub",
                   "marks": ["url-13"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "guide",
+        "slug": "guide",
+        "status": "published",
+        "data": {
+          "title": "Void Chat の使い方",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "guide-block-1",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-1",
+                  "text": "Void Chat は、話題ごとの部屋に投稿を残して、チームで会話するための同梱アプリです。この案内は利用する人向けに、実際の画面でできる操作をまとめています。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-2",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-2",
+                  "text": "最初にすること",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-3",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-3",
+                  "text": "管理者は初回登録を終えてから仲間を招待します。参加者は届いた招待から名前と端末の認証用の鍵を登録します。紹介サイトの管理者登録とは別です。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-4",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-4",
+                  "text": "日々の会話",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-5",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-5",
+                  "text": "部屋を選び、投稿して、必要なときに検索します。自分の投稿は編集と削除ができます。部屋を切り替えても、この画面を開いている間は入力途中の文章が残ります。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-6",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-6",
+                  "text": "できることの範囲",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-7",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-7",
+                  "text": "参加者全員がすべての部屋を利用できます。小さな画像やテキストファイルを添付できます。個別の会話、非公開の部屋、返信を枝分かれさせる機能はありません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-8",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-8",
+                  "text": "次に読む",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-9",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-9",
+                  "href": "/getting-started"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-9",
+                  "text": "初めて使う・参加する",
+                  "marks": ["guide-link-9"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-10",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-10",
+                  "href": "/using-chat"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-10",
+                  "text": "会話する・検索する",
+                  "marks": ["guide-link-10"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-11",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-11",
+                  "href": "/channels"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-11",
+                  "text": "部屋を作る",
+                  "marks": ["guide-link-11"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-12",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-12",
+                  "href": "/inviting-members"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-12",
+                  "text": "仲間を招待する",
+                  "marks": ["guide-link-12"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-13",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-13",
+                  "href": "/account-security"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-13",
+                  "text": "本人確認と端末の管理",
+                  "marks": ["guide-link-13"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-14",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-14",
+                  "href": "/troubleshooting"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-14",
+                  "text": "困ったとき",
+                  "marks": ["guide-link-14"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-15",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-15",
+                  "href": "/command-line"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-15",
+                  "text": "コマンドで操作する",
+                  "marks": ["guide-link-15"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-16",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-16",
+                  "href": "/assistant-connection"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-16",
+                  "text": "外部の支援機能と接続する",
+                  "marks": ["guide-link-16"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "getting-started",
+        "slug": "getting-started",
+        "status": "published",
+        "data": {
+          "title": "初めて使う・参加する",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "guide-block-17",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-17",
+                  "text": "招待を受けた方",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-18",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-18",
+                  "text": "1. 管理者から届いた招待のリンクを開きます。通常の入り口からログインする前に、招待から登録を済ませてください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-19",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-19",
+                  "text": "2. 会話に表示する名前を入力し、「パスキーを登録」を押します。端末の顔認証、指紋認証、画面のロック解除、または外付けの認証器で確認します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-20",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-20",
+                  "text": "3. 部屋と投稿欄が表示されたら登録完了です。最初は general の部屋で、参加したことをひとこと伝えてみましょう。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-21",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-21",
+                  "text": "最初の管理者になる方",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-22",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-22",
+                  "text": "設置担当者が初回登録の設定を済ませると、名前と「初期化キー」の入力欄が表示されます。設置担当者から受け取った会話アプリ用の鍵を入力して、端末に認証用の鍵を登録します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-23",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-23",
+                  "text": "「パスキーでログイン」しか表示されず、まだ誰も登録していない場合は、設置担当者に初回設定を依頼してください。紹介サイトを編集するための初期設定の鍵は、会話アプリには使えません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-24",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-24",
+                  "text": "二回目から開くとき",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-25",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-25",
+                  "text": "登録した端末で会話アプリを開き、「パスキーでログイン」を押します。登録時と同じ端末、または認証情報が同期された端末で確認します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-26",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-26",
+                  "text": "紹介サイトと会話アプリの利用者は別管理です。片方への登録だけでは、もう片方へログインできません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-27",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-27",
+                  "text": "次に読む",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-28",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-28",
+                  "href": "/using-chat"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-28",
+                  "text": "会話を始める",
+                  "marks": ["guide-link-28"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-29",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-29",
+                  "href": "/troubleshooting"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-29",
+                  "text": "登録できないとき",
+                  "marks": ["guide-link-29"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "using-chat",
+        "slug": "using-chat",
+        "status": "published",
+        "data": {
+          "title": "会話する・検索する",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "guide-block-30",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-30",
+                  "text": "投稿する",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-31",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-31",
+                  "text": "左側の一覧から部屋を選びます。携帯画面では上部の選択欄で切り替えます。投稿欄に文章を入力し、送信ボタンを押します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-32",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-32",
+                  "text": "Enter でも送信できます。Shift と Enter を同時に押すと改行します。日本語変換の確定では送信しません。本文は4000文字までです。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-33",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-33",
+                  "text": "下書きと送信の失敗",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-34",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-34",
+                  "text": "部屋を切り替えても、開いている画面内では各部屋の下書きが残ります。画面の再読み込みや終了後には残りません。送信できなかった文章は消さず、失敗した理由を投稿欄の近くに表示します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-35",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-35",
+                  "text": "通信が戻ったら内容を確認して再度送信してください。接続が切れると自動で再接続し、切断中の投稿を取得します。入力途中の文章は同じ画面で保持されます。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-36",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-36",
+                  "text": "編集する・削除する",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-37",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-37",
+                  "text": "自分の投稿の下にある「編集」から本文を直し、「保存」を押します。修正した投稿には「編集済み」と表示されます。取りやめる場合は「取り消す」を押します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-38",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-38",
+                  "text": "「削除」は確認画面で「削除する」を押すまで実行されません。削除後は本文が消え、「この投稿は削除されました」と表示されます。元に戻すことはできません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-39",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-39",
+                  "text": "他の人の投稿は編集・削除できません。別の端末で先に変更された場合は、古い内容で上書きせず、最新の内容を確認するよう案内します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-40",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-40",
+                  "text": "過去の投稿を探す",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-41",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-41",
+                  "text": "上部の「メッセージ検索」を押し、「メッセージを検索」に言葉を入れて「検索」を押します。選んだ部屋に保存された本文と添付ファイル名を探せます。ファイルの中身は検索しません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-42",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-42",
+                  "text": "検索結果を押すと投稿の詳細を確認できます。「続きがあります」と表示されたら「さらに検索」で続けます。閉じるボタンで会話に戻ります。通常の履歴は「以前のメッセージ」から読み込めます。削除した本文は検索結果に出ません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-16",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "text",
+                  "text": "添付する",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-17",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "text",
+                  "text": "会話下部でPNG・JPEG・WebP・TXTのファイルを選びます。1ファイル512KiB以下、1部屋200ファイル・合計16MiBまでです。添付したファイルはダウンロードして確認します。容量が足りないときは管理者へ相談してください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-18",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "text",
+                  "text": "投稿の編集と削除の範囲",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-19",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "text",
+                  "text": "自分が送った本文を編集・削除できます。添付の投稿は変更できません。アーカイブ済みの部屋では本文も変更できません。他の端末で変更された場合は最新の内容を確認してください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-43",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-43",
+                  "text": "次に読む",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-44",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-44",
+                  "href": "/channels"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-44",
+                  "text": "話題ごとに部屋を作る",
+                  "marks": ["guide-link-44"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-45",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-45",
+                  "href": "/troubleshooting"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-45",
+                  "text": "投稿できない・表示が更新されない",
+                  "marks": ["guide-link-45"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "channels",
+        "slug": "channels",
+        "status": "published",
+        "data": {
+          "title": "話題ごとに部屋を作る",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "guide-block-46",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-46",
+                  "text": "部屋を分ける目安",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-47",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-47",
+                  "text": "日々の連絡は general、作業の相談は project、利用者からの質問は support など、目的が分かる名前で分けます。部屋を増やしすぎず、何をどこに書くかを最初の投稿で共有すると会話を探しやすくなります。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-48",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-48",
+                  "text": "作成する",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-49",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-49",
+                  "text": "所有者または管理者が、部屋の一覧の「＋」を押します。携帯画面では上部の「＋」を使います。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-50",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-50",
+                  "text": "「チャンネル名」に半角の小文字・数字・ハイフンで40文字以内の名前を入力し、「作成」を押します。先頭には小文字か数字を使ってください。同じ名前の部屋は作れません。作成後はその部屋へ移動します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-51",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-51",
+                  "text": "参加者に見える範囲",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-52",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-52",
+                  "text": "管理者は上部の「チャンネル設定」から名前を変更し、アーカイブ・復元できます。アーカイブ中も履歴は読めますが、新しい投稿・添付や本文の変更はできません。全員がすべての部屋を利用でき、非公開にはできません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-53",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-53",
+                  "text": "次に読む",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-54",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-54",
+                  "href": "/using-chat"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-54",
+                  "text": "投稿の基本操作",
+                  "marks": ["guide-link-54"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-55",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-55",
+                  "href": "/inviting-members"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-55",
+                  "text": "参加者と役割",
+                  "marks": ["guide-link-55"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "inviting-members",
+        "slug": "inviting-members",
+        "status": "published",
+        "data": {
+          "title": "仲間を招待する・参加を管理する",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "guide-block-56",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-56",
+                  "text": "招待する",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-57",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-57",
+                  "text": "所有者または管理者が「メンバー」を開きます。「メールで招待」に相手のメールアドレスを入力し、「招待」を押します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-58",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-58",
+                  "text": "実際にメールを届けるには、設置担当者による送信元と配信の設定が必要です。送信が失敗した場合は招待が完了したと判断せず、表示された理由を確認してください。開発用の受信箱と本番の配信は別の仕組みです。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "delivery-recovery",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "text",
+                  "text": "招待一覧には配信状況が表示されます。「送信受付済み」は受信確認ではありません。失敗した招待は「再試行」できます。「送信結果不明」の再送は、届いた可能性を確認してから旧リンクを無効にして行います。最新のメールのリンクを使ってください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-59",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-59",
+                  "text": "招待を受けた人の操作",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-60",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-60",
+                  "text": "届いたリンクから名前と端末の認証用の鍵を登録します。招待のリンクだけを使って、以後も本人確認なしでログインできる仕組みではありません。期限切れや使用済みの場合は、管理者に再招待を依頼します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-61",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-61",
+                  "text": "役割の違い",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-62",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-62",
+                  "text": "所有者は参加者の役割を変更できます。所有者と管理者は招待や一般参加者の利用停止を行えます。一般参加者は会話を利用できますが、部屋の作成や招待はできません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-63",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-63",
+                  "text": "所有者自身の降格や削除はできません。所有者を別の人へ移す操作も、現在の画面にはありません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-64",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-64",
+                  "text": "利用を止める・戻す",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-65",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-65",
+                  "text": "参加者の利用停止には確認操作が必要です。停止後は、その人の既存の接続や外部接続用の鍵でも新しい投稿を取得できません。再開する場合は参加者一覧から復帰させます。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-66",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-66",
+                  "text": "招待を取り消したい場合は、未使用の招待を一覧から取り消します。登録済みの参加者を止める操作とは別です。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-67",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-67",
+                  "text": "次に読む",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-68",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-68",
+                  "href": "/getting-started"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-68",
+                  "text": "初めて参加する方へ",
+                  "marks": ["guide-link-68"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-69",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-69",
+                  "href": "/account-security"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-69",
+                  "text": "本人確認の鍵を管理する",
+                  "marks": ["guide-link-69"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "account-security",
+        "slug": "account-security",
+        "status": "published",
+        "data": {
+          "title": "本人確認と端末の管理",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "guide-block-70",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-70",
+                  "text": "設定を開く",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-71",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-71",
+                  "text": "左下の自分の名前を押すと「アカウント」が開きます。携帯画面では上部の「設定」から開きます。表示名の変更、登録した連絡先と端末の認証用の鍵の確認ができます。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-72",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-72",
+                  "text": "予備の認証方法を追加する",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-73",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-73",
+                  "text": "「パスキーを追加」を押し、まず既存の鍵で本人確認してから、新しい認証用の鍵を登録します。普段使う端末を失った場合に備え、予備の端末や認証器を用意してください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-74",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-74",
+                  "text": "不要な鍵は「削除」から取り除けます。削除時にも本人確認が必要です。最後の一つは削除できません。端末間で鍵が同期されるかどうかは、お使いの端末の設定に依存します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-75",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-75",
+                  "text": "外部接続用の鍵",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-76",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-76",
+                  "text": "命令による操作や外部の支援機能との接続には、会話アプリが発行した接続用の鍵を使います。利用範囲は本人の役割を超えません。外部の操作手段だから管理者の制限を回避できるわけではありません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-77",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-77",
+                  "text": "不要になった接続は設定の一覧から取り消してください。画面を共有したり、鍵を文章や会話へ貼り付けたりしないでください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-78",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-78",
+                  "text": "すべての鍵を失ったとき",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-79",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-79",
+                  "text": "メールの入力だけで所有者を取り戻す機能や、パスワードへの切り替えはありません。設置担当者へ相談してください。最初の管理者用の初期化キーを、登録後の復旧用の鍵として使うこともできません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-80",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-80",
+                  "text": "次に読む",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-81",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-81",
+                  "href": "/command-line"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-81",
+                  "text": "外部から命令で操作する",
+                  "marks": ["guide-link-81"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-82",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-82",
+                  "href": "/assistant-connection"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-82",
+                  "text": "外部の支援機能と接続する",
+                  "marks": ["guide-link-82"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-83",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-83",
+                  "href": "/troubleshooting"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-83",
+                  "text": "本人確認が進まないとき",
+                  "marks": ["guide-link-83"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "troubleshooting",
+        "slug": "troubleshooting",
+        "status": "published",
+        "data": {
+          "title": "困ったとき",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "guide-block-84",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-84",
+                  "text": "初めてなのにログインしか表示されない",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-85",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-85",
+                  "text": "既に管理者がいる場合は招待から登録する必要があります。まだ誰も使っていない場合は、設置担当者による初回設定が終わっていない可能性があります。鍵がない状態で何度もログインを試すのではなく、担当者へ確認してください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-86",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-86",
+                  "text": "端末での本人確認が進まない",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-87",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-87",
+                  "text": "確認画面を取り消した、時間が切れた、またはこのアドレス用の鍵が端末に見つからない可能性があります。登録した端末で、公開された正しいアドレスを開いてやり直します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-88",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-88",
+                  "text": "開発用のアドレスや紹介サイトで作った鍵を、会話アプリでは使えません。埋め込まれた画面で進まない場合は、普段使っている閲覧用のアプリから開いてください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-89",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-89",
+                  "text": "投稿を送れない",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-90",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-90",
+                  "text": "通信環境と接続状態を確認します。本文が空白だけでないか、4000文字以内かも確認してください。入力した文章は残るので、復旧後に再送できます。利用停止中の場合は管理者に確認してください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-91",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-91",
+                  "text": "編集・削除できない",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-92",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-92",
+                  "text": "他の人の投稿は変更できません。既に削除された投稿も編集できません。「投稿が更新されました」と表示された場合は、別の端末で先に変更されています。最新の内容を確認し直してください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-93",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-93",
+                  "text": "招待メールが届かない",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-94",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-94",
+                  "text": "迷惑メールの受信箱、宛先の入力、招待の期限を確認します。実際の配信設定が未完了の場合は、設置担当者による送信元の設定が必要です。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-95",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-95",
+                  "text": "新しい投稿が表示されない",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-96",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-96",
+                  "text": "「再接続しています」と表示されている場合は通信の復旧を待ちます。自動更新が続かない場合は、必要な下書きを手元へ控えてから画面を開き直してください。紹介サイトの説明と会話の利用者情報は別に保存されています。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-97",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-97",
+                  "text": "次に読む",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-98",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-98",
+                  "href": "/getting-started"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-98",
+                  "text": "登録の手順を確認する",
+                  "marks": ["guide-link-98"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-99",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-99",
+                  "href": "/using-chat"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-99",
+                  "text": "会話の操作を確認する",
+                  "marks": ["guide-link-99"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "command-line",
+        "slug": "command-line",
+        "status": "published",
+        "data": {
+          "title": "命令で会話を操作する",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "guide-block-100",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-100",
+                  "text": "できること",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-101",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-101",
+                  "text": "同梱の CLI を使い、参加している本人として部屋の一覧や投稿を取得し、文章を送信できます。会話アプリと同じ認可を使うため、停止された人や権限のない人が操作を続けることはできません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-102",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-102",
+                  "text": "接続の準備",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-103",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-103",
+                  "text": "設置担当者が同梱の CLI を組み立てます。接続先には会話アプリのアドレスを指定します。紹介サイトのアドレスは使いません。細かな導入命令は配布元の README で確認できます。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-104",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-104",
+                  "text": "本人確認",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-105",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-105",
+                  "text": "login を実行して会話アプリを開き、端末で本人確認します。設定から接続用の鍵を発行してコピーし、--clipboard を付けた操作だけが明示的にその内容を読み取ります。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-106",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-106",
+                  "text": "鍵を命令の引数に書いたり、画面に表示したり、端末の入力欄へ貼り付けたりしません。登録した端末を手放す場合は、会話アプリの設定で接続を取り消します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-107",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-107",
+                  "text": "よく使う操作",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-108",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-108",
+                  "text": "me は自分の情報、channels list は部屋一覧、messages list は投稿の取得、messages send は送信です。接続先と部屋を確認してから、実際の送信を行ってください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-109",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-109",
+                  "text": "次に読む",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-110",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-110",
+                  "href": "https://github.com/interactive-inc/open-stack-void"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-110",
+                  "text": "導入命令と構成",
+                  "marks": ["guide-link-110"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-111",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-111",
+                  "href": "/account-security"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-111",
+                  "text": "接続用の鍵の管理",
+                  "marks": ["guide-link-111"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "assistant-connection",
+        "slug": "assistant-connection",
+        "status": "published",
+        "data": {
+          "title": "外部の支援機能と接続する",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "guide-block-112",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-112",
+                  "text": "接続の考え方",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-113",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-113",
+                  "text": "同梱の MCP 接続は、本人が画面で承認する方式です。会話アプリの利用者として、認可された範囲の取得・送信を行います。接続相手へ秘密の鍵を会話で渡す手順はありません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-114",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-114",
+                  "text": "承認する",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-115",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-115",
+                  "text": "設置担当者が接続先と実行環境を設定したあと、接続要求に表示される会話アプリの画面を開きます。端末で本人確認して、接続元と確認用の番号を照合してから承認します。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-116",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-116",
+                  "text": "見覚えのない接続は拒否してください。承認要求には有効期限があり、期限切れや取り消した要求は再利用できません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-117",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-117",
+                  "text": "利用を終える",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-118",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-118",
+                  "text": "接続元の操作を止めるだけでなく、必要に応じて会話アプリの設定から接続用の鍵を取り消します。利用者を停止した場合も、接続先だけが権限を保持して会話を取得し続けることはできません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-119",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-119",
+                  "text": "導入担当者向け",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-120",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-120",
+                  "text": "実行環境と接続の設定は、配布元にある apps/mcp/README.md を参照します。接続ができたことと、送信を許可したことは分けて扱い、外部からの実際の投稿は利用者の依頼に沿って行います。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-121",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-121",
+                  "text": "次に読む",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-122",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-122",
+                  "href": "https://github.com/interactive-inc/open-stack-void/tree/main/apps/mcp"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-122",
+                  "text": "配布元の設定手順",
+                  "marks": ["guide-link-122"]
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "guide-block-123",
+              "style": "normal",
+              "markDefs": [
+                {
+                  "_type": "link",
+                  "_key": "guide-link-123",
+                  "href": "/account-security"
+                }
+              ],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "guide-span-123",
+                  "text": "本人確認と接続の管理",
+                  "marks": ["guide-link-123"]
                 }
               ]
             }

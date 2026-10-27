@@ -18,7 +18,15 @@ if (environment.VOID_TEST_DIAGNOSTICS === "1")
 delete environment.__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
 const child = spawn(
   process.execPath,
-  [cli, "dev", "--host", "127.0.0.1", "--port", process.env.PORT],
+  [
+    cli,
+    "dev",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    process.env.PORT,
+    ...(app === "site" ? ["--ignore-lock"] : []),
+  ],
   {
     stdio: "inherit",
     env: environment,

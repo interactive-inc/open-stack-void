@@ -1,6 +1,7 @@
 import { ChatRoom } from "@app/durable-objects/chat-room"
 import type { ChatMessage } from "@/contexts/chat/domain/chat-message"
 import type { ChatPrincipal } from "@/contexts/chat/domain/chat-principal"
+import { MessageChangeError } from "@/contexts/chat/domain/message-change-error"
 import { ChatFailed } from "@/contexts/chat/domain/chat-failed"
 
 export class MessageRepository {
@@ -27,6 +28,15 @@ export class MessageRepository {
   ) {
     const result = await ChatRoom.get(channelId).list(channelId, principal, before, after, until)
     return result.error !== undefined ? new ChatFailed(result.error) : result.messages
+  }
+
+  async change(
+    channelId: string,
+    principal: ChatPrincipal,
+    input: { id: string; revision: number; text: string | null },
+  ) {
+    const result = await ChatRoom.get(channelId).change(channelId, principal, input)
+    return "error" in result ? new MessageChangeError(result.error, result.status) : result.message
   }
 
   async create(message: ChatMessage, principal: ChatPrincipal) {

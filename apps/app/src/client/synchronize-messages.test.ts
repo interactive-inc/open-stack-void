@@ -3,7 +3,7 @@ import type { Message } from "@open-stack/sdk/contracts"
 import { RequestFailed } from "@open-stack/sdk"
 import { chatClient } from "@/client/chat-client"
 import { queryClient } from "@/client/query-client"
-import { synchronizeMessages } from "@/client/synchronize-messages"
+import { synchronizeMessages, mergeMessages } from "@/client/synchronize-messages"
 
 function message(sequence: number): Message {
   return {
@@ -15,6 +15,9 @@ function message(sequence: number): Message {
     createdAt: sequence,
     sequence,
     attachments: [],
+    revision: 0,
+    editedAt: null,
+    deletedAt: null,
   }
 }
 afterEach(() => {
@@ -104,4 +107,28 @@ it("does not repopulate a cleared account cache from a delayed response", async 
   release()
   await recovery
   expect(queryClient.getQueryData(["messages", "channel"])).toBeUndefined()
+})
+
+it("refreshes edits and deletions older than the latest page without resurrecting a newer revision", async () => {
+  const original = message(1)
+  queryClient.setQueryData(["messages", "channel"], [original, message(150)])
+  vi.spyOn(chatClient, "messages").mockResolvedValue([message(150)])
+  vi.spyOn(chatClient, "messagesAfter").mockImplementation(async (_, after, until = 150) =>
+    Array.from({ length: Math.min(100, until - after) }, (_, index) => {
+      const row = message(after + index + 1)
+      return row.sequence === 1 ? { ...row, text: "", revision: 2, deletedAt: 10 } : row
+    }),
+  )
+  await synchronizeMessages("channel")
+  expect(queryClient.getQueryData<Message[]>(["messages", "channel"])?.[0]).toMatchObject({
+    text: "",
+    revision: 2,
+    deletedAt: 10,
+  })
+})
+
+it("does not merge a delayed old revision over a deletion", () => {
+  const original = message(1)
+  const removed = { ...original, text: "", revision: 2, deletedAt: 10 }
+  expect(mergeMessages([removed], [original])).toEqual([removed])
 })

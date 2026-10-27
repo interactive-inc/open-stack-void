@@ -10,7 +10,8 @@
     "deploy": "astro build && wrangler deploy",
     "typecheck": "astro check",
     "check": "astro check",
-    "cms": "emdash"
+    "cms": "emdash",
+    "test": "node --test src/utils/setup-access.test.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "14.4.2",

@@ -1,3 +1,6 @@
+import { EditMessage } from "@/contexts/chat/application/edit-message"
+import { DeleteMessage } from "@/contexts/chat/application/delete-message"
+import { MessageChangeError } from "@/contexts/chat/domain/message-change-error"
 import { Hono } from "hono"
 import { z } from "zod"
 import { env } from "void/env"
@@ -97,6 +100,44 @@ chatRoutes.get("/channels/:channel/messages", async (context) => {
     cursors.until ?? null,
   )
   return result instanceof ChatFailed ? failure(context, result) : context.json(result)
+})
+
+chatRoutes.patch("/channels/:channel/messages/:message", async (context) => {
+  const input = z
+    .object({ text: z.string().trim().min(1).max(4000), revision: z.number().int().nonnegative() })
+    .parse(await context.req.json())
+  const message = await new EditMessage({
+    channels: new ChannelRepository({ database: context.env.DB }),
+    messages: new MessageRepository(),
+    principal: principal(context),
+  }).execute(context.get("member"), {
+    ...input,
+    channelId: context.req.param("channel"),
+    id: z.string().uuid().parse(context.req.param("message")),
+  })
+
+  if (message instanceof MessageChangeError)
+    return context.json({ error: message.message }, message.status)
+  return context.json(message)
+})
+
+chatRoutes.delete("/channels/:channel/messages/:message", async (context) => {
+  const input = z
+    .object({ revision: z.number().int().nonnegative() })
+    .parse(await context.req.json())
+  const message = await new DeleteMessage({
+    channels: new ChannelRepository({ database: context.env.DB }),
+    messages: new MessageRepository(),
+    principal: principal(context),
+  }).execute(context.get("member"), {
+    ...input,
+    channelId: context.req.param("channel"),
+    id: z.string().uuid().parse(context.req.param("message")),
+  })
+
+  if (message instanceof MessageChangeError)
+    return context.json({ error: message.message }, message.status)
+  return context.json(message)
 })
 
 chatRoutes.post("/channels/:channel/messages", async (context) => {

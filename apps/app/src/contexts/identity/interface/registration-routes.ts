@@ -17,7 +17,7 @@ export const registrationRoutes = new Hono<AppEnvironment>()
 registrationRoutes.get("/status", async (context) => {
   const claim = await context.env.DB.prepare("SELECT id FROM chat_bootstrap_claims LIMIT 1").first()
 
-  return context.json({ canBootstrap: !claim && Boolean(env.BOOTSTRAP_TOKEN) })
+  return context.json({ canBootstrap: !claim && Boolean(env.BOOTSTRAP_TOKEN), needsSetup: !claim })
 })
 
 registrationRoutes.post("/register/options", async (context) => {

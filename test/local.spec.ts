@@ -85,6 +85,32 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
   await page.getByRole("button", { name: "送信", exact: true }).click()
   await expect(page.getByText(message, { exact: true })).toBeVisible()
   await expect(page.getByRole("textbox", { name: "#general にメッセージ" })).toHaveValue("")
+  const originalPost = (
+    await (await page.request.get("/api/channels/general/messages")).json()
+  ).find((entry: { text: string }) => entry.text === message)
+  const messageRow = page
+    .locator('[data-slot="message"]')
+    .filter({ has: page.getByText(message, { exact: true }) })
+  await messageRow.getByRole("button", { name: "この投稿を編集", exact: true }).click()
+  await page.getByLabel("投稿を編集", { exact: true }).fill(`edited-${suffix}`)
+  await page.getByRole("button", { name: "保存", exact: true }).click()
+  await expect(page.getByText(`edited-${suffix}`, { exact: true })).toBeVisible()
+  expect(
+    (
+      await page.request.patch(`/api/channels/general/messages/${originalPost.id}`, {
+        headers: { Origin: "http://localhost:5183" },
+        data: { text: "stale overwrite", revision: 0 },
+      })
+    ).status(),
+  ).toBe(409)
+  await page.getByRole("button", { name: "メッセージ検索", exact: true }).click()
+  await page.getByLabel("メッセージを検索", { exact: true }).fill(`edited-${suffix}`)
+  await page.getByRole("button", { name: "検索", exact: true }).click()
+  await expect(
+    page.getByLabel("検索結果").getByText(`edited-${suffix}`, { exact: true }),
+  ).toBeVisible()
+  await page.getByRole("button", { name: "Close", exact: true }).click()
+  await page.getByRole("textbox", { name: "#general にメッセージ" }).fill(`draft-${suffix}`)
   await page.screenshot({ path: ".local/void-chat-desktop.png" })
 
   await page.getByRole("button", { name: "アカウント設定", exact: true }).click()
@@ -165,6 +191,19 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
     await page.request.get("/api/channels", { headers: authorization })
   ).json()
   const channel = channels.find((entry: { name: string }) => entry.name === `test-${suffix}`)
+  await page
+    .getByRole("navigation", { name: "チャンネル", exact: true })
+    .getByRole("button")
+    .filter({ hasText: "general" })
+    .click()
+  await expect(page.getByRole("textbox", { name: "#general にメッセージ" })).toHaveValue(
+    `draft-${suffix}`,
+  )
+  await page
+    .getByRole("navigation", { name: "チャンネル", exact: true })
+    .getByRole("button")
+    .filter({ hasText: `test-${suffix}` })
+    .click()
   const id = crypto.randomUUID()
   const firstSend = await page.request.post(`/api/channels/${channel.id}/messages`, {
     headers: authorization,
@@ -188,6 +227,37 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
     ).status(),
   ).toBe(409)
   await expect(page.getByText("from-api", { exact: true })).toBeVisible({ timeout: 5000 })
+
+  for (let offset = 0; offset < 101; offset += 20) {
+    await Promise.all(
+      Array.from({ length: Math.min(20, 101 - offset) }, async (_, index) => {
+        const result = await page.request.post(`/api/channels/${channel.id}/messages`, {
+          headers: authorization,
+          data: { id: crypto.randomUUID(), text: `history-${suffix}-${offset + index}` },
+        })
+        expect(result.status()).toBe(201)
+      }),
+    )
+  }
+  const recent = await (
+    await page.request.get(`/api/channels/${channel.id}/messages`, { headers: authorization })
+  ).json()
+  expect(recent).toHaveLength(100)
+  expect(recent.some((entry: { id: string }) => entry.id === id)).toBe(false)
+  const historicalSearch = await (
+    await page.request.post(`/api/channels/${channel.id}/search`, {
+      headers: authorization,
+      data: { q: "from-api" },
+    })
+  ).json()
+  expect(historicalSearch.results).toHaveLength(1)
+  expect(historicalSearch.results[0].id).toBe(id)
+  const older = await (
+    await page.request.get(`/api/channels/${channel.id}/messages?before=${recent[0].sequence}`, {
+      headers: authorization,
+    })
+  ).json()
+  expect(older.some((entry: { id: string }) => entry.id === id)).toBe(true)
 
   const printed: unknown[] = []
   await createCli({
@@ -546,6 +616,51 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
     ).status(),
   ).toBe(403)
   expect(
+    (
+      await guestPage.request.patch(`/api/channels/general/messages/${originalPost.id}`, {
+        headers: { Origin: "http://localhost:5183" },
+        data: { text: "forbidden edit", revision: 1 },
+      })
+    ).status(),
+  ).toBe(403)
+  expect(
+    (
+      await guestPage.request.delete(`/api/channels/general/messages/${originalPost.id}`, {
+        headers: { Origin: "http://localhost:5183" },
+        data: { revision: 1 },
+      })
+    ).status(),
+  ).toBe(403)
+  await page.getByRole("button", { name: "Close", exact: true }).click()
+  await guestPage.getByRole("textbox", { name: "#general にメッセージ" }).fill(`live-${suffix}`)
+  await guestPage.getByRole("button", { name: "送信", exact: true }).click()
+  await expect(page.getByText(`live-${suffix}`, { exact: true })).toBeVisible({ timeout: 5000 })
+  const editedRow = page
+    .locator('[data-slot="message"]')
+    .filter({ has: page.getByText(`edited-${suffix}`, { exact: true }) })
+  await editedRow.getByRole("button", { name: "この投稿を削除", exact: true }).click()
+  await page.getByRole("button", { name: "削除する", exact: true }).click()
+  await expect(page.getByText(`edited-${suffix}`, { exact: true })).toHaveCount(0)
+  await expect(guestPage.getByText(`edited-${suffix}`, { exact: true })).toHaveCount(0, {
+    timeout: 5000,
+  })
+  const removed = await (
+    await page.request.post("/api/channels/general/search", {
+      headers: { Origin: "http://localhost:5183" },
+      data: { q: `edited-${suffix}` },
+    })
+  ).json()
+  expect(removed.results).toEqual([])
+  expect(
+    (
+      await page.request.post("/api/channels/general/messages", {
+        headers: { Origin: "http://localhost:5183" },
+        data: { id: originalPost.id, text: message },
+      })
+    ).status(),
+  ).toBe(409)
+  await page.getByRole("button", { name: "メンバー", exact: true }).first().click()
+  expect(
     (await page.request.delete(`/api/members/${guestMe.id}`, { headers: authorization })).status(),
   ).toBe(200)
   expect((await guestPage.request.get("/api/channels")).status()).toBe(401)
@@ -607,6 +722,10 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
 })
 
 test("CMS homepage and administration are available locally", async ({ page }) => {
+  const sample = await page.request.post("http://127.0.0.1:4322/_emdash/api/setup/local-seed", {
+    headers: { Origin: "http://127.0.0.1:4322" },
+  })
+  expect(sample.status()).toBe(200)
   await page.goto("http://localhost:4322/_emdash/api/setup/dev-bypass?redirect=/_emdash/admin")
   await page.goto("http://localhost:4322")
   await expect(page.locator("h1")).not.toBeEmpty()

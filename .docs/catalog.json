@@ -72,8 +72,8 @@
       "evidence": "observed",
       "related": [],
       "supersedes": [],
-      "implementation": [],
-      "verification": [],
+      "implementation": ["playwright.config.ts", "playwright.cms.config.ts", "scripts/serve.mjs"],
+      "verification": ["test/local.spec.ts", "test/site-content.spec.ts"],
       "source": "Existing repository rationale or explicit core contract adopted in the harness increment; inspect linked prose for historical scope."
     },
     {
@@ -429,6 +429,66 @@
         "test/invitation-delivery-fixture.ts",
         "test/local.spec.ts"
       ]
+    },
+    {
+      "id": "chat-usability",
+      "path": "apps/app/.docs/chat-usability.md",
+      "status": "current",
+      "kind": "decision",
+      "evidence": "inferred",
+      "related": ["search-attachments", "public-channel-lifecycle", "initialization-recovery"],
+      "supersedes": [],
+      "implementation": [
+        "apps/app/durable-objects/chat-room.ts",
+        "apps/app/src/client",
+        "apps/app/src/contexts/chat",
+        "apps/app/src/contexts/identity/interface/registration-routes.ts",
+        "apps/app/src/screens",
+        "packages/sdk/src"
+      ],
+      "verification": [
+        "test/local.spec.ts",
+        "apps/app/src/client/synchronize-messages.test.ts",
+        "apps/app/src/contexts/chat/domain/authorize-message-change.test.ts",
+        "test/message-changes.spec.ts"
+      ],
+      "source": "User requested integration of preserved local work with current main; implementation choices and historical production observations are distinguished in prose."
+    },
+    {
+      "id": "user-guide",
+      "path": "apps/site/.docs/user-guide.md",
+      "status": "current",
+      "kind": "decision",
+      "evidence": "inferred",
+      "related": ["content-ownership", "sample-content"],
+      "supersedes": [],
+      "implementation": [
+        "apps/site/seed",
+        "apps/site/src/layouts",
+        "apps/site/src/pages",
+        "apps/site/README.md"
+      ],
+      "verification": ["test/site-content.spec.ts", "test/local.spec.ts"],
+      "source": "User requested integration of preserved local work with current main; implementation choices and historical production observations are distinguished in prose."
+    },
+    {
+      "id": "production-deployment",
+      "path": ".docs/production-deployment.md",
+      "status": "current",
+      "kind": "decision",
+      "evidence": "inferred",
+      "related": ["resource-naming", "chat-usability", "user-guide"],
+      "supersedes": [],
+      "implementation": [
+        "apps/app/void.config.ts",
+        "apps/app/void.lock.json",
+        "apps/site/wrangler.jsonc",
+        "apps/site/src/worker.ts",
+        "apps/site/src/utils/setup-access.ts",
+        "apps/site/package.json"
+      ],
+      "verification": ["apps/site/src/utils/setup-access.test.mjs"],
+      "source": "User requested integration of preserved local work with current main; implementation choices and historical production observations are distinguished in prose."
     }
   ],
   "exceptions": []

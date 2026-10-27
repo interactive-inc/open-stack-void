@@ -8,6 +8,7 @@ import { ChannelRepository } from "@/contexts/chat/infrastructure/repositories/c
 import { RoomAttachments } from "@/contexts/chat/infrastructure/room-attachments"
 import { validateAttachment } from "@/contexts/chat/domain/attachment"
 import type { AttachmentSubmission } from "@/contexts/chat/domain/attachment"
+import { authorizeMessageChange } from "@/contexts/chat/domain/authorize-message-change"
 import { searchSnippet } from "@/contexts/chat/domain/search"
 
 type MessageRow = Omit<ChatMessage, "attachments">
@@ -20,6 +21,16 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
     state.storage.sql.exec(
       "CREATE TABLE IF NOT EXISTS messages (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, channelId TEXT NOT NULL, memberId TEXT NOT NULL, memberName TEXT NOT NULL, text TEXT NOT NULL, createdAt INTEGER NOT NULL)",
     )
+    const columns = state.storage.sql
+      .exec<{ name: string }>("PRAGMA table_info(messages)")
+      .toArray()
+    for (const column of [
+      "revision INTEGER NOT NULL DEFAULT 0",
+      "editedAt INTEGER",
+      "deletedAt INTEGER",
+    ])
+      if (!columns.some((existing) => existing.name === column.split(" ")[0]))
+        state.storage.sql.exec(`ALTER TABLE messages ADD COLUMN ${column}`)
     RoomAttachments.initialize(state.storage.sql)
   }
 
@@ -69,7 +80,12 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
         .toArray()[0]
 
       if (existing) {
-        if (existing.memberId !== message.memberId || existing.text !== message.text)
+        if (
+          existing.deletedAt !== null ||
+          existing.revision > 0 ||
+          existing.memberId !== message.memberId ||
+          existing.text !== message.text
+        )
           return { error: "conflict" as const }
         return { message: this.withAttachments(existing) }
       }
@@ -89,6 +105,50 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
 
       await this.broadcast()
       return { message: this.withAttachments(stored) }
+    })
+  }
+
+  async change(
+    channelId: string,
+    principal: ChatPrincipal,
+    input: {
+      id: string
+      revision: number
+      text: string | null
+    },
+  ): Promise<{ message: ChatMessage } | { error: string; status: 403 | 404 | 409 }> {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      const access = await new ChatAccessRepository(this.env.DB).findOne(channelId, principal)
+      if (!access) return { error: "アクセスが停止されています", status: 403 }
+      const row = this.ctx.storage.sql
+        .exec<MessageRow>(
+          "SELECT * FROM messages WHERE id = ? AND channelId = ?",
+          input.id,
+          channelId,
+        )
+        .toArray()[0]
+      const current = row ? this.withAttachments(row) : null
+      const failure = authorizeMessageChange({
+        message: current,
+        memberId: principal.memberId,
+        revision: input.revision,
+      })
+      if (failure) return { error: failure.message, status: failure.status }
+      if (access.archived)
+        return { error: "アーカイブ済みのチャンネルは変更できません", status: 409 }
+      if (current?.attachments.length) return { error: "添付の投稿は変更できません", status: 409 }
+      const now = Date.now()
+      const message = this.ctx.storage.sql
+        .exec<MessageRow>(
+          "UPDATE messages SET text = ?, revision = revision + 1, editedAt = ?, deletedAt = ? WHERE id = ? RETURNING *",
+          input.text ?? "",
+          input.text === null ? (current?.editedAt ?? null) : now,
+          input.text === null ? now : null,
+          input.id,
+        )
+        .one()
+      await this.broadcast()
+      return { message: this.withAttachments(message) }
     })
   }
 
@@ -138,7 +198,7 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
           ? []
           : this.ctx.storage.sql
               .exec<MessageRow>(
-                "SELECT * FROM messages WHERE channelId = ? AND sequence >= ? AND sequence < ? AND sequence <= ? AND instr(lower(text),lower(?)) > 0 ORDER BY sequence DESC LIMIT 51",
+                "SELECT * FROM messages WHERE channelId = ? AND sequence >= ? AND sequence < ? AND sequence <= ? AND deletedAt IS NULL AND instr(lower(text),lower(?)) > 0 ORDER BY sequence DESC LIMIT 51",
                 channelId,
                 range.first,
                 cursor,

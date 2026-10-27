@@ -59,6 +59,9 @@ export const messageSchema = z.object({
   createdAt: z.number(),
   sequence: z.number(),
   attachments: attachmentSchema.array().default([]),
+  revision: z.number().int().nonnegative().default(0),
+  editedAt: z.number().nullable().default(null),
+  deletedAt: z.number().nullable().default(null),
 })
 export const invitationSchema = z.object({
   id: z.string(),
