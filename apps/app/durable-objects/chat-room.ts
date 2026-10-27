@@ -28,9 +28,13 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
       "revision INTEGER NOT NULL DEFAULT 0",
       "editedAt INTEGER",
       "deletedAt INTEGER",
+      "replyToId TEXT",
     ])
       if (!columns.some((existing) => existing.name === column.split(" ")[0]))
         state.storage.sql.exec(`ALTER TABLE messages ADD COLUMN ${column}`)
+    state.storage.sql.exec(
+      "CREATE TABLE IF NOT EXISTS read_positions (memberId TEXT PRIMARY KEY, sequence INTEGER NOT NULL)",
+    )
     RoomAttachments.initialize(state.storage.sql)
   }
 
@@ -83,6 +87,7 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
         if (
           existing.deletedAt !== null ||
           existing.revision > 0 ||
+          existing.replyToId !== message.replyToId ||
           existing.memberId !== message.memberId ||
           existing.text !== message.text
         )
@@ -90,21 +95,77 @@ class ChatRoomObject extends DurableObject<{ DB: D1Database }> {
         return { message: this.withAttachments(existing) }
       }
       if (access.archived) return { error: "archived" as const }
+      if (
+        message.replyToId &&
+        !this.ctx.storage.sql
+          .exec(
+            "SELECT id FROM messages WHERE id = ? AND channelId = ? AND deletedAt IS NULL",
+            message.replyToId,
+            message.channelId,
+          )
+          .toArray().length
+      )
+        return { error: "invalid" as const }
 
       const stored = this.ctx.storage.sql
         .exec<MessageRow>(
-          "INSERT INTO messages (id, channelId, memberId, memberName, text, createdAt) VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
+          "INSERT INTO messages (id, channelId, memberId, memberName, text, createdAt, replyToId) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *",
           message.id,
           message.channelId,
           message.memberId,
           access.memberName,
           message.text,
           Date.now(),
+          message.replyToId,
         )
         .one()
 
       await this.broadcast()
       return { message: this.withAttachments(stored) }
+    })
+  }
+
+  private channelActivity(channelId: string, memberId: string) {
+    const readSequence =
+      this.ctx.storage.sql
+        .exec<{ sequence: number }>(
+          "SELECT sequence FROM read_positions WHERE memberId = ?",
+          memberId,
+        )
+        .toArray()[0]?.sequence ?? 0
+    const lastSequence = this.ctx.storage.sql
+      .exec<{ maximum: number }>("SELECT COALESCE(MAX(sequence),0) AS maximum FROM messages")
+      .one().maximum
+    const unreadCount = this.ctx.storage.sql
+      .exec<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM (SELECT sequence FROM messages WHERE sequence > ? AND memberId != ? AND deletedAt IS NULL LIMIT 100)",
+        readSequence,
+        memberId,
+      )
+      .one().count
+    return { channelId, readSequence, lastSequence, unreadCount }
+  }
+
+  async activity(channelId: string, principal: ChatPrincipal) {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      if (!(await new ChatAccessRepository(this.env.DB).findOne(channelId, principal)))
+        return { error: "forbidden" as const }
+      return { activity: this.channelActivity(channelId, principal.memberId) }
+    })
+  }
+
+  async markRead(channelId: string, principal: ChatPrincipal, sequence: number) {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      if (!(await new ChatAccessRepository(this.env.DB).findOne(channelId, principal)))
+        return { error: "forbidden" as const }
+      if (!Number.isSafeInteger(sequence) || sequence < 0) return { error: "invalid" as const }
+      const current = this.channelActivity(channelId, principal.memberId)
+      this.ctx.storage.sql.exec(
+        "INSERT INTO read_positions(memberId,sequence) VALUES (?,?) ON CONFLICT(memberId) DO UPDATE SET sequence = MAX(sequence,excluded.sequence)",
+        principal.memberId,
+        Math.min(sequence, current.lastSequence),
+      )
+      return { activity: this.channelActivity(channelId, principal.memberId) }
     })
   }
 

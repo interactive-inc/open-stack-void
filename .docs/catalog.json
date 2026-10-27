@@ -489,6 +489,38 @@
       ],
       "verification": ["apps/site/src/utils/setup-access.test.mjs"],
       "source": "User requested integration of preserved local work with current main; implementation choices and historical production observations are distinguished in prose."
+    },
+    {
+      "id": "workday-chat",
+      "path": "apps/app/.docs/workday-chat.md",
+      "status": "current",
+      "kind": "requirement",
+      "evidence": "user",
+      "source": "User requested the minimum business-usable chat; unread, reply and retry details are reversible implementation assumptions identified in prose.",
+      "related": ["chat-usability", "public-channel-lifecycle", "search-attachments", "user-guide"],
+      "supersedes": [],
+      "implementation": [
+        "apps/app/durable-objects/chat-room.ts",
+        "apps/app/src/client",
+        "apps/app/src/contexts/chat",
+        "apps/app/src/screens",
+        "packages/sdk/src",
+        "apps/cli/src/create-cli.ts",
+        "apps/mcp/src/server.ts",
+        "apps/site/seed/seed.json",
+        "apps/site/src/pages/index.astro",
+        "apps/site/src/layouts/Base.astro",
+        "apps/site/AGENTS.md",
+        "playwright.config.ts",
+        "apps/site/public"
+      ],
+      "verification": [
+        "apps/app/src/contexts/chat/application/mark-channel-read.test.ts",
+        "test/workday.spec.ts",
+        "test/local.spec.ts",
+        "test/site-content.spec.ts",
+        "test/content.spec.ts"
+      ]
     }
   ],
   "exceptions": []

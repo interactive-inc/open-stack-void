@@ -131,7 +131,7 @@ test("literal search is bounded, paginated, snapshot-stable and rendered as iner
     expect(new URL((await request).url()).search).toBe("")
     await dialog.locator('[aria-label="検索結果"]').getByRole("button").click()
     await expect(dialog.getByText(malicious, { exact: true })).toBeVisible()
-    await expect(owner.page).toHaveTitle("Void Chat")
+    await expect(owner.page).toHaveTitle(/^(?:\((?:[1-9]\d?|99\+)\) )?Void Chat$/)
     expect(await dialog.locator("img").count()).toBe(0)
   } finally {
     await owner.close()
@@ -543,7 +543,7 @@ test("attachment paging and interrupted uploads preserve file selection and mess
     expect(path).not.toBe(null)
     expect((await readFile(path!)).toString()).toBe("<script>document.title='INJECTED'</script>")
     expect(file.suggestedFilename()).toBe("retry.txt")
-    await expect(owner.page).toHaveTitle("Void Chat")
+    await expect(owner.page).toHaveTitle(/^(?:\((?:[1-9]\d?|99\+)\) )?Void Chat$/)
     await owner.page.getByLabel("添付ファイル", { exact: true }).setInputFiles({
       name: "retained.txt",
       mimeType: "text/plain",

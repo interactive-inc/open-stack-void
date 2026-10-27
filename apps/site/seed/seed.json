@@ -2,13 +2,13 @@
   "$schema": "https://emdashcms.com/seed.schema.json",
   "version": "1",
   "meta": {
-    "name": "Open Stack Void",
-    "description": "フルスタック開発のためのOSSボイラープレート。Void Chat は同梱サンプル。",
+    "name": "Void Chat",
+    "description": "チームの連絡と相談に使うVoid Chatの紹介と利用案内。",
     "author": "interactive-inc"
   },
   "settings": {
-    "title": "Open Stack Void",
-    "tagline": "つくるための、土台。"
+    "title": "Void Chat",
+    "tagline": "チームの連絡と相談を、話題ごとの会話に。"
   },
   "collections": [
     {
@@ -109,6 +109,11 @@
       "items": [
         {
           "type": "custom",
+          "label": "はじめ方",
+          "url": "/getting-started"
+        },
+        {
+          "type": "custom",
           "label": "使い方",
           "url": "/guide"
         },
@@ -116,11 +121,6 @@
           "type": "custom",
           "label": "困ったとき",
           "url": "/troubleshooting"
-        },
-        {
-          "type": "custom",
-          "label": "開発",
-          "url": "/posts"
         }
       ]
     }
@@ -159,32 +159,46 @@
         "slug": "home",
         "status": "published",
         "data": {
-          "title": "Void Chat を、チームで使い始める。",
+          "title": "仕事の連絡を、ひとつの会話に。",
           "content": [
             {
               "_type": "block",
-              "_key": "guide-block-124",
+              "_key": "intro",
               "style": "normal",
               "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "guide-span-124",
-                  "text": "話題ごとの部屋で会話し、必要な投稿をあとから探す。仲間の招待から端末の本人確認まで、一つの会話アプリで扱えます。",
+                  "_key": "span",
+                  "text": "招待したメンバーで、日々の連絡や案件の相談を。話題ごとのチャンネルで会話し、未読を確認して、必要な投稿に返信できます。",
                   "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "guide-block-125",
+              "_key": "features",
               "style": "normal",
               "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "guide-span-125",
-                  "text": "Open Stack Void に同梱された Void Chat の、利用者向けの案内です。初めて使う方は登録の手順から、すでに参加している方は基本操作からご覧ください。",
+                  "_key": "span",
+                  "text": "投稿はあとから検索でき、画像やテキストも添付できます。パスキーでログインして、そのまま会話を始めましょう。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "team",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "参加は管理者からの招待で。チャンネルは参加者全員で共有します。",
                   "marks": []
                 }
               ]
@@ -257,53 +271,61 @@
         "slug": "about",
         "status": "published",
         "data": {
-          "title": "Open Stack Void について",
+          "title": "Void Chat について",
           "content": [
             {
               "_type": "block",
-              "_key": "base-6",
+              "_key": "about",
               "style": "normal",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-6",
-                  "text": "Open Stack Void は、新しいアプリの開発を始めるためのボイラープレートです。リポジトリは interactive-inc/open-stack-void。Void Chat は基盤の使い方を示す同梱サンプルで、独立したチャット製品としての提供ではありません。"
+                  "_key": "span",
+                  "text": "Void Chat は、招待したメンバーで仕事の連絡や相談を進めるチャットツールです。話題ごとのチャンネル、未読の確認、投稿への返信、検索、小さなファイルの添付を使えます。",
+                  "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "base-7",
+              "_key": "access",
               "style": "normal",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-7",
-                  "text": "npm ワークスペースと Vite+ で、Void / React のアプリ、Astro / EmDash の公開サイト、CLI、MCP、共有 API クライアントを管理します。"
+                  "_key": "span",
+                  "text": "チャンネルは参加者全員で共有します。管理者が参加者とチャンネルを管理し、本人は自分の投稿を編集・削除できます。",
+                  "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "base-8",
+              "_key": "auth",
               "style": "normal",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-8",
-                  "text": "パスキー認証、メール招待、メンバー権限、Durable Objects によるメッセージ保存と WebSocket 更新をサンプルに実装しています。Web・CLI・MCP は同じサーバーの認可とアプリケーションルールを使います。"
+                  "_key": "span",
+                  "text": "ログインにはパスキーを使います。紹介サイトを編集するためのアカウントと、チャットのアカウントは別です。",
+                  "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "base-9",
+              "_key": "source",
               "style": "normal",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-9",
-                  "text": "この紹介ページと記事は EmDash のコンテンツです。自分のアプリへ拡張するときは、サンプルのユースケースや境界付けされたコンテキストを手がかりに実装を追加します。"
+                  "_key": "span",
+                  "text": "開発基盤は Open Stack Void です。ソースを使って導入・拡張する方向けの構成と手順も公開しています。",
+                  "marks": []
                 }
               ]
             },
@@ -322,7 +344,7 @@
                 {
                   "_type": "span",
                   "_key": "span-10",
-                  "text": "導入とサンプルの使い方",
+                  "text": "チームでの使い始め方",
                   "marks": ["url-10"]
                 }
               ]
@@ -406,7 +428,7 @@
                 {
                   "_type": "span",
                   "_key": "guide-span-1",
-                  "text": "Void Chat は、話題ごとの部屋に投稿を残して、チームで会話するための同梱アプリです。この案内は利用する人向けに、実際の画面でできる操作をまとめています。",
+                  "text": "Void Chat の使い方です。参加する、連絡を確認する、相談に返信する、あとから探す。日々の操作をここから確認できます。",
                   "marks": []
                 }
               ]
@@ -490,7 +512,7 @@
                 {
                   "_type": "span",
                   "_key": "guide-span-7",
-                  "text": "参加者全員がすべての部屋を利用できます。小さな画像やテキストファイルを添付できます。個別の会話、非公開の部屋、返信を枝分かれさせる機能はありません。",
+                  "text": "参加者全員がすべての部屋を利用できます。小さな画像やテキストファイルを添付できます。個別の会話と非公開の部屋はありません。返信は同じ会話内に表示します。",
                   "marks": []
                 }
               ]
@@ -1117,6 +1139,90 @@
                   "_type": "span",
                   "_key": "text",
                   "text": "自分が送った本文を編集・削除できます。添付の投稿は変更できません。アーカイブ済みの部屋では本文も変更できません。他の端末で変更された場合は最新の内容を確認してください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "unread-title",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "未読を確認する",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "unread",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "部屋の一覧に未読件数が表示されます。前面で会話の末尾を表示すると、自分の確認位置が保存されます。別のタブを見ている間や、以前の履歴を読んでいる間は自動で確認済みにしません。相手への既読表示はありません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "reply-title",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "投稿に返信する",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "reply",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "投稿の「返信」を押し、返信元を確認して送信します。返信は同じ部屋に残り、元の投稿が編集・削除されると引用表示にも反映されます。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "notification-title",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "通知の範囲",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "notification",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "アプリを開いている間は、一覧とブラウザのタブで未読を確認できます。アプリを閉じた状態での通知、音、メール通知はありません。",
                   "marks": []
                 }
               ]
@@ -1805,6 +1911,20 @@
           "content": [
             {
               "_type": "block",
+              "_key": "retry",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "投稿に失敗したら、残っている本文を確認して「再送」します。部屋を切り替えて戻っても同じ送信を再試行でき、応答だけが途切れたときの重複投稿を防ぎます。画面を閉じたり再読み込みしたりすると下書きは失われます。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
               "_key": "guide-block-84",
               "style": "h2",
               "markDefs": [],
@@ -2429,114 +2549,150 @@
         "slug": "welcome",
         "status": "published",
         "data": {
-          "title": "導入して Void Chat サンプルを試す",
-          "excerpt": "ローカル起動と、同梱サンプルのパスキー・招待・チャット。",
+          "title": "チームで Void Chat を使い始める",
+          "excerpt": "管理者の準備、メンバーの参加、最初の会話まで。",
           "content": [
             {
               "_type": "block",
-              "_key": "base-14",
+              "_key": "intro",
               "style": "normal",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-14",
-                  "text": "Open Stack Void のリポジトリで vp install --frozen-lockfile、vp run prepare:local、vp run setup、vp run dev を実行します。vp run seed:site でこの紹介ページと記事を EmDash に取り込めます。"
+                  "_key": "span",
+                  "text": "最初に管理者が登録し、メンバーを招待します。参加者は届いたリンクから名前とパスキーを登録すると、会話を始められます。",
+                  "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "base-15",
+              "_key": "channels",
               "style": "normal",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-15",
-                  "text": "アプリを開き、apps/app/.env の初期化キーをブラウザへ貼り付け、最初の所有者のパスキーを登録します。キーは URL に入れません。以降はメンバー管理からメール招待を送ります。"
+                  "_key": "span",
+                  "text": "最初のチャンネルは general。日々の連絡を書き、相談に返信してみましょう。案件ごとの部屋は管理者が追加できます。参加者全員がすべての部屋を読める構成です。",
+                  "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "base-16",
-              "style": "normal",
+              "_key": "unread-title",
+              "style": "h2",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-16",
-                  "text": "Void Chat は基盤の動作確認用サンプルです。ローカルの招待メールは開発用受信箱に保存され、会話は Durable Objects に保存されます。WebSocket が更新を通知します。"
+                  "_key": "span",
+                  "text": "未読を確認する",
+                  "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "base-17",
+              "_key": "unread",
               "style": "normal",
+              "markDefs": [],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-17",
-                  "text": "本番ドメイン、実メール配信、公開デプロイは別途設定が必要です。ローカル設定のまま公開する構成ではありません。"
+                  "_key": "span",
+                  "text": "部屋の一覧で未読を見つけ、前面で会話の末尾を表示すると確認済みになります。返信には元の投稿が表示されるので、相談の前後を確かめられます。",
+                  "marks": []
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "link-18",
+              "_key": "admin-title",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "管理者の準備",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "admin",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "実際に招待メールを届けるには送信元と配信設定が必要です。まず管理者自身のパスキーを登録し、社内のテスト用アドレスで招待と参加を確認してください。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "start",
               "style": "normal",
               "markDefs": [
                 {
                   "_type": "link",
-                  "_key": "url-18",
-                  "href": "/about"
+                  "_key": "link",
+                  "href": "/getting-started"
                 }
               ],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-18",
-                  "text": "ボイラープレートの概要",
-                  "marks": ["url-18"]
+                  "_key": "span",
+                  "text": "参加と初回登録の手順",
+                  "marks": ["link"]
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "link-19",
+              "_key": "chat",
               "style": "normal",
               "markDefs": [
                 {
                   "_type": "link",
-                  "_key": "url-19",
-                  "href": "/posts/cli-and-mcp"
+                  "_key": "link",
+                  "href": "/using-chat"
                 }
               ],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-19",
-                  "text": "CLI と MCP の基盤",
-                  "marks": ["url-19"]
+                  "_key": "span",
+                  "text": "投稿・返信・未読の使い方",
+                  "marks": ["link"]
                 }
               ]
             },
             {
               "_type": "block",
-              "_key": "link-20",
+              "_key": "invite",
               "style": "normal",
               "markDefs": [
                 {
                   "_type": "link",
-                  "_key": "url-20",
-                  "href": "https://github.com/interactive-inc/open-stack-void"
+                  "_key": "link",
+                  "href": "/inviting-members"
                 }
               ],
               "children": [
                 {
                   "_type": "span",
-                  "_key": "span-20",
-                  "text": "GitHub の README",
-                  "marks": ["url-20"]
+                  "_key": "span",
+                  "text": "仲間を招待する",
+                  "marks": ["link"]
                 }
               ]
             }

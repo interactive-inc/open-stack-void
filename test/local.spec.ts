@@ -410,6 +410,35 @@ test("passkeys, membership, durable chat, CLI and MCP share authorization", asyn
     ).isError,
   ).not.toBe(true)
   await cli("messages", "send", transportChannel, "transport-history")
+  const transportParent = (printed.at(-1) as { id: string }).id
+  await cli("messages", "send", transportChannel, "cli-reply", "--reply-to", transportParent)
+  expect(printed.at(-1)).toMatchObject({ replyToId: transportParent })
+  const mcpReply = await mcp.callTool({
+    name: "send_message",
+    arguments: { channel: transportChannel, text: "mcp-reply", replyToId: transportParent },
+  })
+  expect(mcpReply.isError).not.toBe(true)
+  await cli("channels", "read", transportChannel, "1")
+  expect(printed.at(-1)).toMatchObject({ readSequence: 1 })
+  await cli("channels", "activity", transportChannel)
+  expect(printed.at(-1)).toMatchObject([{ channelId: transportChannel, unreadCount: 0 }])
+  expect(
+    (
+      await mcp.callTool({
+        name: "channel_activity",
+        arguments: { channelIds: [transportChannel] },
+      })
+    ).isError,
+  ).not.toBe(true)
+  expect(
+    (
+      await mcp.callTool({
+        name: "mark_channel_read",
+        arguments: { channel: transportChannel, sequence: 2 },
+      })
+    ).isError,
+  ).not.toBe(true)
+
   expect(
     (
       await mcp.callTool({

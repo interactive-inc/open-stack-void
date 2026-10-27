@@ -10,6 +10,7 @@ export const chatMessageSchema = z.object({
   createdAt: z.number(),
   sequence: z.number().int().nonnegative().default(0),
   attachments: attachmentSchema.array().default([]),
+  replyToId: z.uuid().nullable().default(null),
   revision: z.number().int().nonnegative().default(0),
   editedAt: z.number().nullable().default(null),
   deletedAt: z.number().nullable().default(null),

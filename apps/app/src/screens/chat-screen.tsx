@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Search01Icon, Settings01Icon } from "@hugeicons/core-free-icons"
 import { useQuery, useMutation } from "@tanstack/react-query"
@@ -22,13 +22,15 @@ import { ChannelSettingsPanel } from "@/screens/channel-settings-panel"
 import { SearchPanel } from "@/screens/search-panel"
 import { chatClient } from "@/client/chat-client"
 import { queryClient } from "@/client/query-client"
+import { emptyChatDraft } from "@/client/chat-draft"
+import type { ChatDraft } from "@/client/chat-draft"
 import type { Member } from "@open-stack/sdk/contracts"
 
 type Props = { viewer: Member }
 
 /** チャンネルと会話に画面を集中させる。 */
 export function ChatScreen(props: Props) {
-  const drafts = useState<Record<string, string>>({})
+  const drafts = useState<Record<string, ChatDraft>>({})
   const selectedChannel = useState("general")
   const panel = useState<"members" | "account" | "channel" | "channel-settings" | "search" | null>(
     null,
@@ -40,6 +42,27 @@ export function ChatScreen(props: Props) {
     queryFn: () => chatClient.channels(),
     refetchInterval: 30_000,
   })
+  const activity = useQuery({
+    queryKey: ["channel-activity", channels.data?.map((channel) => channel.id)],
+    enabled: Boolean(channels.data),
+    queryFn: async () => {
+      const ids = channels.data?.map((channel) => channel.id) ?? []
+      const result = []
+      for (let offset = 0; offset < ids.length; offset += 50)
+        result.push(...(await chatClient.channelActivity(ids.slice(offset, offset + 50))))
+      return result
+    },
+    refetchInterval: 15_000,
+  })
+  const unread = (id: string) =>
+    activity.data?.find((item) => item.channelId === id)?.unreadCount ?? 0
+  const unreadTotal = activity.data?.reduce((total, item) => total + item.unreadCount, 0) ?? 0
+  useEffect(() => {
+    document.title = `${unreadTotal ? `(${unreadTotal > 99 ? "99+" : unreadTotal}) ` : ""}Void Chat`
+    return () => {
+      document.title = "Void Chat"
+    }
+  }, [unreadTotal])
   const channel =
     channels.data?.find((channel) => channel.id === selectedChannel[0]) ?? channels.data?.[0]
   const createChannel = useMutation({
@@ -88,7 +111,15 @@ export function ChatScreen(props: Props) {
               onClick={() => selectedChannel[1](channel.id)}
             >
               <span className="text-muted-foreground">#</span>
-              {channel.name}
+              <span className="min-w-0 truncate">{channel.name}</span>
+              {unread(channel.id) > 0 && (
+                <span
+                  className="ml-auto text-xs font-semibold"
+                  aria-label={`${unread(channel.id) > 99 ? "99件以上" : `${unread(channel.id)}件`}の未読`}
+                >
+                  {unread(channel.id) > 99 ? "99+" : unread(channel.id)}
+                </span>
+              )}
               {channel.archived && (
                 <span className="text-xs text-muted-foreground">アーカイブ</span>
               )}
@@ -131,6 +162,9 @@ export function ChatScreen(props: Props) {
               {channels.data?.map((channel) => (
                 <NativeSelectOption key={channel.id} value={channel.id}>
                   # {channel.name}
+                  {unread(channel.id)
+                    ? ` · 未読${unread(channel.id) > 99 ? "99+" : unread(channel.id)}`
+                    : ""}
                   {channel.archived ? "（アーカイブ）" : ""}
                 </NativeSelectOption>
               ))}
@@ -182,9 +216,21 @@ export function ChatScreen(props: Props) {
             </Button>
           )}
         </header>
-        {channels.error && (
+        {(channels.error || activity.error) && (
           <Alert variant="destructive">
-            <AlertDescription>{channels.error.message}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between gap-2">
+              <span>{channels.error?.message ?? activity.error?.message}</span>
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => {
+                  void channels.refetch()
+                  void activity.refetch()
+                }}
+              >
+                再読込
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
         {channel && (
@@ -192,8 +238,16 @@ export function ChatScreen(props: Props) {
             key={channel.id}
             channel={channel}
             viewerId={props.viewer.id}
-            draft={drafts[0][channel.id] ?? ""}
-            onDraftChange={(text) => drafts[1]((current) => ({ ...current, [channel.id]: text }))}
+            draft={drafts[0][channel.id] ?? emptyChatDraft}
+            paused={panel[0] !== null}
+            onSent={(id) =>
+              drafts[1]((current) =>
+                current[channel.id]?.id === id
+                  ? { ...current, [channel.id]: emptyChatDraft }
+                  : current,
+              )
+            }
+            onDraftChange={(draft) => drafts[1]((current) => ({ ...current, [channel.id]: draft }))}
           />
         )}
       </div>

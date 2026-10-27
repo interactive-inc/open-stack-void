@@ -1,3 +1,5 @@
+import { ChannelActivityRepository } from "@/contexts/chat/infrastructure/repositories/channel-activity.repository"
+import { MarkChannelRead } from "@/contexts/chat/application/mark-channel-read"
 import { EditMessage } from "@/contexts/chat/application/edit-message"
 import { DeleteMessage } from "@/contexts/chat/application/delete-message"
 import { MessageChangeError } from "@/contexts/chat/domain/message-change-error"
@@ -27,6 +29,34 @@ chatRoutes.use("*", authenticate)
 chatRoutes.get("/channels", async (context) =>
   context.json(await new ChannelRepository({ database: context.env.DB }).findMany()),
 )
+
+chatRoutes.post("/channel-activity", async (context) => {
+  const input = z
+    .object({ channelIds: z.array(z.string().min(1).max(100)).max(50) })
+    .strict()
+    .parse(await context.req.json())
+  const repository = new ChannelActivityRepository()
+  const result = []
+  for (const id of new Set(input.channelIds)) {
+    const activity = await repository.findOne(id, principal(context))
+    if (activity instanceof ChatFailed) return failure(context, activity)
+    result.push(activity)
+  }
+  return context.json(result)
+})
+chatRoutes.post("/channels/:channel/read", async (context) => {
+  const input = z
+    .object({ sequence: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER) })
+    .strict()
+    .parse(await context.req.json())
+  const result = await new MarkChannelRead(new ChannelActivityRepository()).execute(
+    context.get("member"),
+    principal(context),
+    context.req.param("channel"),
+    input.sequence,
+  )
+  return result instanceof ChatFailed ? failure(context, result) : context.json(result)
+})
 
 chatRoutes.post("/channels", async (context) => {
   const input = z
@@ -142,7 +172,11 @@ chatRoutes.delete("/channels/:channel/messages/:message", async (context) => {
 
 chatRoutes.post("/channels/:channel/messages", async (context) => {
   const input = z
-    .object({ id: z.string().uuid(), text: z.string().trim().min(1).max(4000) })
+    .object({
+      id: z.string().uuid(),
+      text: z.string().trim().min(1).max(4000),
+      replyToId: z.uuid().nullable().default(null),
+    })
     .parse(await context.req.json())
   const message = await new SendMessage({
     channels: new ChannelRepository({ database: context.env.DB }),

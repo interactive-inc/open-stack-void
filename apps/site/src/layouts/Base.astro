@@ -17,7 +17,7 @@ type Props = {
 const props = Astro.props
 const settings = await getSiteSettingsWithCacheHint()
 const menu = await getMenuWithCacheHint('primary')
-const siteTitle = settings.data?.title || 'Open Stack Void'
+const siteTitle = settings.data?.title || 'Void Chat'
 const description = props.description || settings.data?.tagline || ''
 const appUrl = import.meta.env.PUBLIC_APP_URL || (import.meta.env.DEV ? 'http://app.void.stack.localhost' : 'https://app.stack.open.inta.site')
 const pageContext = createPublicPageContext({ Astro, kind: props.content ? 'content' : 'custom', pageType: 'website', title: props.title, pageTitle: props.pageTitle || props.title, description, canonical: props.canonical, image: props.image, content: props.content, siteName: siteTitle })
@@ -41,12 +41,12 @@ if (Astro.cache?.enabled) {
       <a href="/" class="font-semibold tracking-tight">{siteTitle}<span class="text-muted-foreground">.</span></a>
       <nav class="flex flex-wrap items-center gap-1" aria-label="ナビゲーション">
         {menu.data?.items.filter(item => item.url !== '/').map(item => <a href={item.url} class={buttonVariants({ variant: 'ghost', size: 'sm' })}>{item.label}</a>)}
-        <a href={appUrl} class={buttonVariants({ size: 'sm' })}>会話を開く ↗</a>
+        <a href={appUrl} class={buttonVariants({ size: 'sm' })}>チャットを開く ↗</a>
       </nav>
     </header>
     <main class="content mx-auto max-w-5xl px-6 py-12 sm:py-20"><slot /></main>
     <footer class="mx-auto flex max-w-5xl justify-between gap-4 border-t border-border px-6 py-5 text-xs text-muted-foreground">
-      <a href="/guide" class="hover:underline">使い方</a><a href="/about" class="hover:underline">Open Stack Void について</a>
+      <a href="/guide" class="hover:underline">使い方</a><a href="/about" class="hover:underline">Void Chat について</a>
       <a href="https://github.com/interactive-inc/open-stack-void" class="hover:underline">GitHub ↗</a>
     </footer>
     <EmDashBodyEnd page={pageContext} />

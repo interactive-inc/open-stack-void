@@ -17,7 +17,8 @@ export default defineConfig({
     { name: "invitations", testMatch: "invitations.spec.ts", dependencies: ["security"] },
     { name: "channels", testMatch: "channels.spec.ts", dependencies: ["invitations"] },
     { name: "message-changes", testMatch: "message-changes.spec.ts", dependencies: ["channels"] },
-    { name: "content", testMatch: "content.spec.ts", dependencies: ["message-changes"] },
+    { name: "workday", testMatch: "workday.spec.ts", dependencies: ["message-changes"] },
+    { name: "content", testMatch: "content.spec.ts", dependencies: ["workday"] },
     { name: "bootstrap", testMatch: "bootstrap.spec.ts", dependencies: ["content"] },
   ],
   use: {

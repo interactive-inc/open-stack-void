@@ -27,7 +27,11 @@ export function subscribeChannel(
       if (connection.isClosed || connection.socket !== socket) return
       if (event.data === "pong") clearTimeout(connection.heartbeat)
       void synchronizeMessages(channelId).catch(() => undefined)
-      if (event.data !== "pong") void queryClient.invalidateQueries({ queryKey: ["channels"] })
+      if (event.data !== "pong") {
+        void queryClient.invalidateQueries({ queryKey: ["channels"] })
+        void queryClient.invalidateQueries({ queryKey: ["channel-activity"] })
+        void queryClient.invalidateQueries({ queryKey: ["message", channelId] })
+      }
     }
     socket.onopen = () => {
       if (connection.isClosed) {

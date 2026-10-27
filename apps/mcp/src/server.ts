@@ -152,6 +152,29 @@ server.registerTool(
   () => toolResponse(() => client.channels()),
 )
 server.registerTool(
+  "channel_activity",
+  {
+    description:
+      "Read only your own unread counts and confirmation positions for up to 50 channels",
+    inputSchema: z.object({ channelIds: z.array(z.string().min(1).max(100)).max(50) }),
+    annotations: readOnly,
+  },
+  (input) => toolResponse(() => client.channelActivity(input.channelIds)),
+)
+server.registerTool(
+  "mark_channel_read",
+  {
+    description:
+      "Explicitly confirm messages through this sequence for the authenticated user only",
+    inputSchema: z.object({
+      channel: z.string(),
+      sequence: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    }),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  (input) => toolResponse(() => client.markChannelRead(input.channel, input.sequence)),
+)
+server.registerTool(
   "create_channel",
   {
     description: "Create a channel (admin)",
@@ -215,10 +238,14 @@ server.registerTool(
       channel: z.string(),
       text: z.string().min(1).max(4000),
       id: z.string().uuid().optional(),
+      replyToId: z.uuid().optional(),
     }),
     annotations: { destructiveHint: false, idempotentHint: false },
   },
-  (input) => toolResponse(() => client.sendMessage(input.channel, input.text, input.id)),
+  (input) =>
+    toolResponse(() =>
+      client.sendMessage(input.channel, input.text, input.id, input.replyToId ?? null),
+    ),
 )
 server.registerTool(
   "list_members",

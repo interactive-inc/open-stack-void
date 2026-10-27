@@ -15,6 +15,7 @@ function message(sequence: number): Message {
     createdAt: sequence,
     sequence,
     attachments: [],
+    replyToId: null,
     revision: 0,
     editedAt: null,
     deletedAt: null,

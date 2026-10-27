@@ -15,7 +15,10 @@ type Context = Readonly<{
 export class SendMessage {
   constructor(private readonly context: Context) {}
 
-  async execute(member: Member, input: { channelId: string; id: string; text: string }) {
+  async execute(
+    member: Member,
+    input: { channelId: string; id: string; text: string; replyToId?: string | null },
+  ) {
     if (member.status !== "active" || member.id !== this.context.principal.memberId)
       return new ChatFailed("forbidden")
 

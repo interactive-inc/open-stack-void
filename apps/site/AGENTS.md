@@ -2,7 +2,7 @@ This is an EmDash site -- a CMS built on Astro with a full admin UI.
 
 User requirements take precedence over the starter's suggestions below: use shadcn/ui `base-maia` for UI primitives, keep product text minimal, and store rationale in `.docs/` using wiki links. Do not hand-edit generated UI primitives. The app and CMS accounts remain independent.
 
-- Introduce Open Stack Void as the boilerplate and Void Chat as its bundled sample.
+- Introduce Void Chat through actual business use and supported features. Keep Open Stack Void source and developer context secondary; do not claim unsupported functionality or production verification.
 - Use `vp run seed:site` from the repository root for local sample content. Preserve existing content, publication state, menus, widgets, and editor settings; never seed accounts or secrets.
 - Verify actual public navigation and article publication lifecycles, including `/about`, rather than treating the homepage or admin response as whole-site coverage.
 - The GitHub source is https://github.com/interactive-inc/open-stack-void. Do not infer a license type without a repository license file.

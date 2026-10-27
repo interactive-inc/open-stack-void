@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -21,19 +21,27 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { AttachmentComposer } from "@/screens/attachment-composer"
 import { synchronizeMessages, mergeMessages } from "@/client/synchronize-messages"
 import type { Message as ChatMessage } from "@open-stack/sdk/contracts"
+import { MessageReference } from "@/screens/message-reference"
+import { ChannelReadMarker } from "@/screens/channel-read-marker"
+import type { ChatDraft } from "@/client/chat-draft"
 import type { Channel } from "@open-stack/sdk/contracts"
 
 type Props = {
   channel: Channel
   viewerId: string
-  draft: string
-  onDraftChange: (text: string) => void
+  draft: ChatDraft
+  paused: boolean
+  onDraftChange: (draft: ChatDraft) => void
+  onSent: (id: string) => void
 }
 
 /** チャンネルの会話を表示して送信する。 */
 export function Conversation(props: Props) {
+  const composer = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => {
+    if (props.draft.replyToId && document.hasFocus()) composer.current?.focus()
+  }, [props.draft.replyToId])
   const connection = useState<"connecting" | "connected" | "retrying">("connecting")
-  const pendingId = useState<string | null>(null)
   const subscription = useState(() => () => subscribeChannel(props.channel.id, connection[1]))
   const hasOlder = useState(true)
   const messages = useQuery({
@@ -66,11 +74,15 @@ export function Conversation(props: Props) {
     },
   })
   const send = useMutation({
-    mutationFn: (submission: { text: string; id: string }) =>
-      chatClient.sendMessage(props.channel.id, submission.text, submission.id),
-    onSuccess: async () => {
-      props.onDraftChange("")
-      pendingId[1](null)
+    mutationFn: (submission: { text: string; id: string; replyToId: string | null }) =>
+      chatClient.sendMessage(
+        props.channel.id,
+        submission.text,
+        submission.id,
+        submission.replyToId,
+      ),
+    onSuccess: async (_, submission) => {
+      props.onSent(submission.id)
       await synchronizeMessages(props.channel.id)
     },
   })
@@ -122,9 +134,25 @@ export function Conversation(props: Props) {
                       message={message}
                       viewerId={props.viewerId}
                       archived={props.channel.archived}
+                      onReply={() =>
+                        props.onDraftChange({
+                          ...props.draft,
+                          replyToId: message.id,
+                          id: crypto.randomUUID(),
+                        })
+                      }
                     />
                   </MessageScrollerItem>
                 ))}
+                {messages.data && (
+                  <MessageScrollerItem messageId="read-marker">
+                    <ChannelReadMarker
+                      channelId={props.channel.id}
+                      sequence={messages.data.at(-1)?.sequence ?? 0}
+                      paused={props.paused}
+                    />
+                  </MessageScrollerItem>
+                )}
                 {messages.data?.length === 0 && (
                   <MessageScrollerItem messageId="empty">
                     <Empty>
@@ -142,16 +170,59 @@ export function Conversation(props: Props) {
         className="flex flex-col gap-2 px-4 py-3 sm:px-6"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!props.draft.trim() || send.isPending || props.channel.archived) return
-          const id = pendingId[0] ?? crypto.randomUUID()
-          pendingId[1](id)
-          send.mutate({ text: props.draft, id })
+          if (!props.draft.text.trim() || send.isPending || props.channel.archived) return
+          const id = props.draft.id ?? crypto.randomUUID()
+          props.onDraftChange({ ...props.draft, id })
+          send.mutate({ text: props.draft.text, id, replyToId: props.draft.replyToId })
         }}
       >
+        {props.draft.replyToId && (
+          <div className="flex items-start justify-between gap-2">
+            <MessageReference channelId={props.channel.id} id={props.draft.replyToId} />
+            <Button
+              type="button"
+              size="xs"
+              variant="ghost"
+              disabled={send.isPending}
+              onClick={() =>
+                props.onDraftChange({ ...props.draft, replyToId: null, id: crypto.randomUUID() })
+              }
+            >
+              返信を取り消す
+            </Button>
+          </div>
+        )}
         {(send.error || messages.error || older.error) && (
           <Alert variant="destructive">
             <AlertDescription>
-              {send.error?.message ?? messages.error?.message ?? older.error?.message}
+              {send.error instanceof TypeError
+                ? "送信結果を確認できません。同じ文章で再送してください"
+                : (send.error?.message ?? messages.error?.message ?? older.error?.message)}
+              {send.error && (
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="ghost"
+                  disabled={send.isPending}
+                  onClick={() => {
+                    const id = props.draft.id ?? crypto.randomUUID()
+                    props.onDraftChange({ ...props.draft, id })
+                    send.mutate({ text: props.draft.text, id, replyToId: props.draft.replyToId })
+                  }}
+                >
+                  再送
+                </Button>
+              )}
+              {(messages.error || older.error) && (
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => void synchronizeMessages(props.channel.id).catch(() => undefined)}
+                >
+                  履歴を再取得
+                </Button>
+              )}
             </AlertDescription>
           </Alert>
         )}
@@ -159,16 +230,20 @@ export function Conversation(props: Props) {
         <FieldGroup>
           <Field orientation="horizontal" className="items-end">
             <Textarea
+              ref={composer}
               aria-label={`#${props.channel.name} にメッセージ`}
               placeholder={`#${props.channel.name} にメッセージ`}
               className="min-h-12 resize-none rounded-2xl"
               rows={1}
               maxLength={4000}
-              value={props.draft}
+              value={props.draft.text}
               disabled={send.isPending || props.channel.archived}
               onChange={(event) => {
-                props.onDraftChange(event.target.value)
-                pendingId[1](null)
+                props.onDraftChange({
+                  ...props.draft,
+                  text: event.target.value,
+                  id: crypto.randomUUID(),
+                })
               }}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -182,7 +257,7 @@ export function Conversation(props: Props) {
               size="icon"
               aria-label="送信"
               title="送信"
-              disabled={send.isPending || props.channel.archived || !props.draft.trim()}
+              disabled={send.isPending || props.channel.archived || !props.draft.text.trim()}
             >
               ↑
             </Button>

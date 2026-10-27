@@ -17,10 +17,11 @@ import {
 import { chatClient } from "@/client/chat-client"
 import { queryClient } from "@/client/query-client"
 import { synchronizeMessages } from "@/client/synchronize-messages"
+import { MessageReference } from "@/screens/message-reference"
 import { MessageAttachments } from "@/screens/message-attachments"
 import type { Message as ChatMessage } from "@open-stack/sdk/contracts"
 
-type Props = { message: ChatMessage; viewerId: string; archived: boolean }
+type Props = { message: ChatMessage; viewerId: string; archived: boolean; onReply: () => void }
 
 /** 投稿を読み、本人の投稿だけを編集または確認後に削除する。 */
 export function ConversationMessage(props: Props) {
@@ -49,7 +50,9 @@ export function ConversationMessage(props: Props) {
           </Avatar>
         </MessageAvatar>
       )}
-      <MessageContent className="min-w-0 gap-1">
+      <MessageContent
+        className={own ? "w-fit max-w-[85%] min-w-0 items-end gap-1" : "min-w-0 gap-1"}
+      >
         <MessageHeader className="flex-wrap gap-2">
           <span>{props.message.memberName}</span>
           <time dateTime={new Date(props.message.createdAt).toISOString()}>
@@ -62,9 +65,12 @@ export function ConversationMessage(props: Props) {
           </time>
           {props.message.editedAt && !props.message.deletedAt && <span>編集済み</span>}
         </MessageHeader>
+        {props.message.replyToId && (
+          <MessageReference channelId={props.message.channelId} id={props.message.replyToId} />
+        )}
         {editing[0] ? (
           <form
-            className="grid gap-2"
+            className="grid w-72 max-w-full gap-2"
             onSubmit={(event) => {
               event.preventDefault()
               const edit = editing[0]
@@ -130,36 +136,39 @@ export function ConversationMessage(props: Props) {
             </BubbleContent>
           </Bubble>
         )}
-        {own &&
-          !props.archived &&
-          !props.message.attachments.length &&
-          !props.message.deletedAt &&
-          !editing[0] && (
-            <div className="flex justify-end gap-1">
-              <Button
-                variant="ghost"
-                size="xs"
-                aria-label="この投稿を編集"
-                onClick={() => {
-                  mutation.reset()
-                  editing[1]({ text: props.message.text, revision: props.message.revision })
-                }}
-              >
-                編集
-              </Button>
-              <Button
-                variant="ghost"
-                size="xs"
-                aria-label="この投稿を削除"
-                onClick={() => {
-                  mutation.reset()
-                  removal[1](props.message.revision)
-                }}
-              >
-                削除
-              </Button>
-            </div>
-          )}
+        {!props.archived && !props.message.deletedAt && !editing[0] && (
+          <div className="flex gap-1">
+            <Button variant="ghost" size="xs" aria-label="この投稿に返信" onClick={props.onReply}>
+              返信
+            </Button>
+            {own && !props.message.attachments.length && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  aria-label="この投稿を編集"
+                  onClick={() => {
+                    mutation.reset()
+                    editing[1]({ text: props.message.text, revision: props.message.revision })
+                  }}
+                >
+                  編集
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  aria-label="この投稿を削除"
+                  onClick={() => {
+                    mutation.reset()
+                    removal[1](props.message.revision)
+                  }}
+                >
+                  削除
+                </Button>
+              </>
+            )}
+          </div>
+        )}
         {mutation.error && removal[0] === null && (
           <Alert variant="destructive">
             <AlertDescription>{mutation.error.message}</AlertDescription>

@@ -1,6 +1,7 @@
 import { z } from "zod"
 import {
   memberSchema,
+  channelActivitySchema,
   channelSchema,
   messageSchema,
   invitationSchema,
@@ -90,6 +91,17 @@ export class VoidChatClient {
   }
   channels() {
     return this.request("/channels", channelSchema.array())
+  }
+  channelActivity(channelIds: string[]) {
+    return this.request("/channel-activity", channelActivitySchema.array(), "POST", { channelIds })
+  }
+  markChannelRead(channelId: string, sequence: number) {
+    return this.request(
+      `/channels/${encodeURIComponent(channelId)}/read`,
+      channelActivitySchema,
+      "POST",
+      { sequence },
+    )
   }
   renameProfile(name: string) {
     return this.request("/me", memberSchema, "PATCH", { name })
@@ -214,12 +226,17 @@ export class VoidChatClient {
       { revision },
     )
   }
-  sendMessage(channelId: string, text: string, id: string = crypto.randomUUID()) {
+  sendMessage(
+    channelId: string,
+    text: string,
+    id: string = crypto.randomUUID(),
+    replyToId: string | null = null,
+  ) {
     return this.request(
       `/channels/${encodeURIComponent(channelId)}/messages`,
       messageSchema,
       "POST",
-      { id, text },
+      { id, text, replyToId },
     )
   }
   members() {

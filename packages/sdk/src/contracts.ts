@@ -13,6 +13,12 @@ export const channelSchema = z.object({
   name: z.string(),
   archived: z.boolean().default(false),
 })
+export const channelActivitySchema = z.object({
+  channelId: z.string(),
+  readSequence: z.number().int().nonnegative(),
+  lastSequence: z.number().int().nonnegative(),
+  unreadCount: z.number().int().min(0).max(100),
+})
 export const attachmentSchema = z.object({
   id: z.string(),
   channelId: z.string(),
@@ -59,6 +65,7 @@ export const messageSchema = z.object({
   createdAt: z.number(),
   sequence: z.number(),
   attachments: attachmentSchema.array().default([]),
+  replyToId: z.uuid().nullable().default(null),
   revision: z.number().int().nonnegative().default(0),
   editedAt: z.number().nullable().default(null),
   deletedAt: z.number().nullable().default(null),

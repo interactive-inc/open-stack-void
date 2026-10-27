@@ -51,6 +51,14 @@ export function createCli(props: Props) {
     .action(async (name: string) => props.print(await (await client()).renameProfile(name)))
 
   const channels = command.command("channels")
+  channels
+    .command("activity <ids...>")
+    .action(async (ids: string[]) => props.print(await (await client()).channelActivity(ids)))
+  channels
+    .command("read <id> <sequence>")
+    .action(async (id: string, sequence: string) =>
+      props.print(await (await client()).markChannelRead(id, Number(sequence))),
+    )
   channels.command("list").action(async () => props.print(await (await client()).channels()))
   channels
     .command("create <name>")
@@ -168,8 +176,11 @@ export function createCli(props: Props) {
   messages
     .command("send <channel> <text>")
     .option("--id <uuid>", "Reuse the same ID when retrying")
-    .action(async (channel: string, text: string, options: { id?: string }) =>
-      props.print(await (await client()).sendMessage(channel, text, options.id)),
+    .option("--reply-to <uuid>", "Reply to a message in the same channel")
+    .action(async (channel: string, text: string, options: { id?: string; replyTo?: string }) =>
+      props.print(
+        await (await client()).sendMessage(channel, text, options.id, options.replyTo ?? null),
+      ),
     )
 
   const members = command.command("members")

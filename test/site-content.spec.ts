@@ -54,9 +54,43 @@ test("EmDash seed preserves edits and public content follows the publishing life
   expect((await page.goto(`${site}/about`))?.status()).toBe(404)
   expect(seed().content).toMatchObject({ created: contentCount, updated: 0 })
   expect(seed().content).toMatchObject({ created: 0, skipped: contentCount, updated: 0 })
+  await page.goto(site)
+  await expect(
+    page.getByRole("heading", { name: "仕事の連絡を、ひとつの会話に。", exact: true }),
+  ).toBeVisible()
+  const screenshot = page.getByRole("img", {
+    name: "Void Chatの会話画面。仕事の連絡に返信元を添えて返事を送る。",
+    exact: true,
+  })
+  await screenshot.scrollIntoViewIfNeeded()
+  await expect
+    .poll(() => screenshot.evaluate((image) => (image as HTMLImageElement).naturalWidth))
+    .toBeGreaterThan(0)
+  await page.evaluate(() => scrollTo(0, 0))
+  await page.screenshot({
+    path: "/tmp/product-test/void-chat-site-desktop.png",
+    fullPage: true,
+    animations: "disabled",
+  })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await screenshot.scrollIntoViewIfNeeded()
+  await expect
+    .poll(() => screenshot.evaluate((image) => (image as HTMLImageElement).currentSrc))
+    .toContain("chat-workspace-mobile.png")
+  await expect
+    .poll(() => screenshot.evaluate((image) => (image as HTMLImageElement).naturalWidth))
+    .toBeGreaterThan(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.evaluate(() => scrollTo(0, 0))
+  await page.screenshot({
+    path: "/tmp/product-test/void-chat-site-mobile.png",
+    fullPage: true,
+    animations: "disabled",
+  })
+  await page.setViewportSize({ width: 1440, height: 900 })
   expect((await page.goto(`${site}/about`))?.status()).toBe(200)
-  await expect(page.getByRole("heading", { name: "Open Stack Void について" })).toBeVisible()
-  await expect(page.getByText(/ボイラープレートです/)).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Void Chat について" })).toBeVisible()
+  await expect(page.getByText(/仕事の連絡や相談/)).toBeVisible()
   const before = cms("get", "pages", "about", "--raw")
   cms(
     "update",
@@ -201,6 +235,7 @@ test("EmDash seed preserves edits and public content follows the publishing life
     "assistant-connection",
   ])
     expect(visited).toContain(`${site}/${guide}`)
+  expect(visited).toContain(site + "/posts")
   expect(visited).toContain(site + "/about")
   expect(visited).toContain(site + "/posts/welcome")
   expect(visited).toContain(site + "/category/general")
