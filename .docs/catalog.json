@@ -485,9 +485,18 @@
         "apps/site/wrangler.jsonc",
         "apps/site/src/worker.ts",
         "apps/site/src/utils/setup-access.ts",
-        "apps/site/package.json"
+        "apps/site/package.json",
+        "apps/site/src/layouts/Base.astro",
+        "apps/site/public/_headers",
+        "apps/app/pages/index.tsx",
+        "apps/app/pages/index.server.ts",
+        "apps/app/src/api/api.ts"
       ],
-      "verification": ["apps/site/src/utils/setup-access.test.mjs"],
+      "verification": [
+        "apps/site/src/utils/setup-access.test.mjs",
+        "test/local.spec.ts",
+        "test/site-content.spec.ts"
+      ],
       "source": "User requested integration of preserved local work with current main; implementation choices and historical production observations are distinguished in prose."
     },
     {

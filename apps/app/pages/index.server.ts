@@ -1,5 +1,6 @@
 import { defineHandler } from "void"
 
-export const loader = defineHandler((context) => ({
-  authorizationId: context.req.query("authorize") ?? null,
-}))
+export const loader = defineHandler((context) => {
+  context.header("X-Robots-Tag", "noindex")
+  return { authorizationId: context.req.query("authorize") ?? null }
+})

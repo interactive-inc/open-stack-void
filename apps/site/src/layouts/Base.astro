@@ -30,6 +30,7 @@ if (Astro.cache?.enabled) {
 <!doctype html>
 <html lang="ja">
   <head>
+    <meta name="robots" content="noindex" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{props.pageTitle ? props.title : props.title === siteTitle ? siteTitle : `${props.title} · ${siteTitle}`} </title>

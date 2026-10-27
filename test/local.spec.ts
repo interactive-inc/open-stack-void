@@ -15,7 +15,10 @@ test("initialization state failures are explicit and recover without a reload", 
   await page.route("**/api/auth/status", (route) =>
     route.fulfill({ status: 503, json: { error: "Synthetic initialization failure" } }),
   )
-  await page.goto("/")
+  const response = await page.goto("/")
+  expect(response?.headers()["x-robots-tag"]).toBe("noindex")
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex")
+  expect((await page.request.get("/api/health")).headers()["x-robots-tag"]).toBe("noindex")
   await expect(page.getByRole("alert")).toContainText("ログイン状態を確認できません")
   await expect(page.getByRole("button", { name: "パスキーでログイン", exact: true })).toBeDisabled()
   await page.unroute("**/api/auth/status")

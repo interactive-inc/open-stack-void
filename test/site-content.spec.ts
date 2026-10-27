@@ -55,6 +55,7 @@ test("EmDash seed preserves edits and public content follows the publishing life
   expect(seed().content).toMatchObject({ created: contentCount, updated: 0 })
   expect(seed().content).toMatchObject({ created: 0, skipped: contentCount, updated: 0 })
   await page.goto(site)
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex")
   await expect(
     page.getByRole("heading", { name: "仕事の連絡を、ひとつの会話に。", exact: true }),
   ).toBeVisible()

@@ -22,6 +22,7 @@ api.use("*", (context, next) =>
 )
 
 api.use("*", async (context, next) => {
+  context.header("X-Robots-Tag", "noindex")
   context.header("Cache-Control", "no-store")
   context.header("X-Content-Type-Options", "nosniff")
   context.header("Referrer-Policy", "no-referrer")
