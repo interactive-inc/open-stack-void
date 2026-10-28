@@ -29,7 +29,8 @@
     "verify": "node scripts/verify.mjs",
     "verify:full": "node scripts/verify.mjs --full",
     "release:plan": "node scripts/release-plan.mjs",
-    "setup:scanner": "node scripts/setup-scanner.mjs"
+    "setup:scanner": "node scripts/setup-scanner.mjs",
+    "deploy:production": "node scripts/deploy-production.mjs"
   },
   "devDependencies": {
     "@babel/parser": "7.29.11",
