@@ -25,12 +25,13 @@
     "check:architecture": "node scripts/check-architecture.mjs",
     "check:docs": "node scripts/check-docs.mjs",
     "check:secrets": "node scripts/check-secrets.mjs",
-    "test:harness": "node --test scripts/architecture-policy.test.mjs scripts/docs-policy.test.mjs scripts/release-candidate.test.mjs scripts/line-endings.test.mjs scripts/assert-proxy-port.test.mjs scripts/dev-body-limit.test.mjs",
+    "test:harness": "node --test scripts/architecture-policy.test.mjs scripts/docs-policy.test.mjs scripts/release-candidate.test.mjs scripts/line-endings.test.mjs scripts/assert-proxy-port.test.mjs scripts/dev-body-limit.test.mjs scripts/verification-evidence.test.mjs",
     "verify": "node scripts/verify.mjs",
     "verify:full": "node scripts/verify.mjs --full",
     "release:plan": "node scripts/release-plan.mjs",
     "setup:scanner": "node scripts/setup-scanner.mjs",
-    "deploy:production": "node scripts/deploy-production.mjs"
+    "deploy:production": "node scripts/deploy-production.mjs",
+    "check:verification": "node scripts/check-verification.mjs"
   },
   "devDependencies": {
     "@babel/parser": "7.29.11",

@@ -73,3 +73,5 @@ jobs:
         run: vp exec playwright install chromium
       - name: Full isolated verification
         run: vp run verify:full
+      - name: Confirm exact clean verification
+        run: vp run check:verification

@@ -493,13 +493,16 @@
         "apps/app/src/api/api.ts",
         "scripts/deploy-production.mjs",
         "package.json",
-        ".github/workflows/verify.yml"
+        ".github/workflows/verify.yml",
+        "scripts/check-verification.mjs",
+        "scripts/verification-evidence.mjs"
       ],
       "verification": [
         "apps/site/src/utils/setup-access.test.mjs",
         "test/local.spec.ts",
         "test/site-content.spec.ts",
-        "test/invitations.spec.ts"
+        "test/invitations.spec.ts",
+        "scripts/verification-evidence.test.mjs"
       ],
       "source": "User requested integration of preserved local work with current main; implementation choices and historical production observations are distinguished in prose."
     },
