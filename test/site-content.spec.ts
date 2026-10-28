@@ -40,6 +40,8 @@ function seed() {
   return JSON.parse(summary)
 }
 
+test.describe.configure({ mode: "serial" })
+
 test("EmDash seed preserves edits and public content follows the publishing lifecycle", async ({
   page,
   browser,
@@ -186,6 +188,10 @@ test("EmDash seed preserves edits and public content follows the publishing life
   await editing.close()
   await page.goto(`${site}/posts/architecture`)
   await expect(page.getByRole("heading", { name: "管理画面で更新した記事" })).toBeVisible()
+})
+
+test("all public navigation and guide links resolve after CMS publication", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
   const visited = new Set<string>()
   const pending = [site + "/"]
   const report: Array<{ source: string; target: string; status: number }> = []
