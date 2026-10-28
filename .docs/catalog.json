@@ -490,7 +490,10 @@
         "apps/site/public/_headers",
         "apps/app/pages/index.tsx",
         "apps/app/pages/index.server.ts",
-        "apps/app/src/api/api.ts"
+        "apps/app/src/api/api.ts",
+        "scripts/deploy-production.mjs",
+        "package.json",
+        ".github/workflows/verify.yml"
       ],
       "verification": [
         "apps/site/src/utils/setup-access.test.mjs",
