@@ -498,7 +498,8 @@
       "verification": [
         "apps/site/src/utils/setup-access.test.mjs",
         "test/local.spec.ts",
-        "test/site-content.spec.ts"
+        "test/site-content.spec.ts",
+        "test/invitations.spec.ts"
       ],
       "source": "User requested integration of preserved local work with current main; implementation choices and historical production observations are distinguished in prose."
     },
