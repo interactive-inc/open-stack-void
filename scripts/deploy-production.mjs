@@ -33,7 +33,11 @@ const vp = fileURLToPath(new URL("../node_modules/vite-plus/bin/vp", import.meta
 function run(args, extraEnv = {}) {
   const result = spawnSync(process.execPath, [vp, ...args], {
     stdio: "inherit",
-    env: { ...process.env, ...extraEnv },
+    env: {
+      ...process.env,
+      CLOUDFLARE_ACCOUNT_ID: "9acefc4e7cfd25ff42cf1213f469f775",
+      ...extraEnv,
+    },
   })
   if (result.error) throw result.error
   if (result.status !== 0) throw new Error(`Production release stopped: vp ${args.join(" ")}`)
