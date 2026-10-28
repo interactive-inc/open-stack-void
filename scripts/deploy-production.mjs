@@ -7,6 +7,8 @@ const read = (command, args) => execFileSync(command, args, { encoding: "utf8" }
 const api = (path) => JSON.parse(read("gh", ["api", `repos/${repository}/${path}`]))
 const sha = read("git", ["rev-parse", "HEAD"])
 function assertTarget() {
+  if (read("git", ["rev-parse", "HEAD"]) !== sha)
+    throw new Error("Release checkout changed during verification")
   if (read("git", ["branch", "--show-current"]) !== "release")
     throw new Error("Deploy only from the release branch")
   if (read("git", ["status", "--porcelain"])) throw new Error("Release checkout must be clean")
