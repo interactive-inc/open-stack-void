@@ -1,6 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
+import { assertReleaseRun, assertReleaseJob } from "./verification-evidence.mjs"
 
 const repository = "interactive-inc/open-stack-void"
 const read = (command, args) => execFileSync(command, args, { encoding: "utf8" }).trim()
@@ -24,12 +25,11 @@ function assertTarget() {
     protection.allow_deletions?.enabled
   )
     throw new Error("Release branch protections are incomplete")
-  const checks = api(`commits/${sha}/check-runs`).check_runs
-  const verification = checks.find(
-    (check) => check.name === "verify" && check.app?.slug === "github-actions",
-  )
-  if (verification?.status !== "completed" || verification.conclusion !== "success")
-    throw new Error("The exact release commit needs a successful GitHub verify check")
+  const workflow = api(
+    `actions/workflows/verify.yml/runs?branch=release&head_sha=${sha}&event=push&per_page=1`,
+  ).workflow_runs[0]
+  assertReleaseRun(workflow, sha)
+  assertReleaseJob(api(`actions/runs/${workflow.id}/jobs?filter=latest&per_page=100`).jobs)
 }
 const vp = fileURLToPath(new URL("../node_modules/vite-plus/bin/vp", import.meta.url))
 function run(args, extraEnv = {}) {
@@ -45,13 +45,10 @@ function run(args, extraEnv = {}) {
   if (result.status !== 0) throw new Error(`Production release stopped: vp ${args.join(" ")}`)
 }
 assertTarget()
-run(["run", "verify:full"])
 run(["run", "check:secrets"])
-const verification = JSON.parse(readFileSync(".local/verification.json", "utf8"))
 const secrets = JSON.parse(readFileSync(".local/secret-receipt.json", "utf8"))
-if (verification.sha !== sha || !verification.clean || !verification.full || secrets.sha !== sha)
-  throw new Error("Verification receipts must match the exact clean release commit")
-// Recheck GitHub and the checkout after the lengthy verification, before any production write.
+if (secrets.sha !== sha) throw new Error("Secret scan must match the exact release commit")
+// Recheck GitHub and the checkout after secret scanning, before any production write.
 assertTarget()
 console.log(`Deploying verified release ${sha}`)
 run(["-C", "apps/app", "exec", "void", "deploy", "--platform", "cloudflare"], {
